@@ -1,0 +1,27 @@
+name: 파라미터 변경 제안
+description: 파라미터 변경 제안점에 대해서 자세히 설명해주세요. 파라미터 변경 제안사항에는 Optimizer, Scheduler 등을 포함합니다.
+
+body:
+- type: textarea
+  attributes:
+    label: 현재 상황과 문제점
+    description: >
+      현재 상황과 문제점에 대해서 간략히 서술해주세요. Metric 또는 성능! 
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 개선 제안 사항
+    description: >
+      개선 하기 위한 파라미터 변경 제안 사항에 대해서 자세히 서술해주세요! 왜 제안 하시는지도 자세히 서술해주세요!
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 성능 개선 기대점
+    description: >
+      파라미터 변경 시, 성능이 개선될 것으로 예상되는 점을 서술해주세요!
+- type: markdown
+  attributes:
+    value: >
+      수고하셨습니다!

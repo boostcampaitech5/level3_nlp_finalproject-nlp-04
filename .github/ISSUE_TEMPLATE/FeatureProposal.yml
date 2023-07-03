@@ -1,0 +1,21 @@
+name: "기능 추가"
+description: 프로젝트에 새로 추가하길 원하시는 내용을 제안 / 요청 해주세요. 
+labels: [ "feature" ]
+body:
+  - type: textarea
+    id: feature-request
+    validations:
+      required: true
+    attributes:
+      label: Feature request
+      description: |
+        기능 제안에 대한 명확하고 간결한 설명과 함께, 논문과 코드가 있는 경우 해당 링크를 제공해 주세요.
+
+  - type: textarea
+    id: motivation
+    validations:
+      required: true
+    attributes:
+      label: Motivation
+      description: |
+        제안의 동기를 간략하게 설명해 주세요. 연관된 Issue 혹은 PR이 있는 경우 함께 언급해주세요. 
