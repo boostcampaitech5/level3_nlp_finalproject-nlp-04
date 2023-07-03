@@ -1,0 +1,20 @@
+name: 데이터와 EDA
+description: 데이터에 대해서 자세히 서술해주세요!
+
+body:
+- type: textarea
+  attributes:
+    label: 현재 상황과 EDA
+    description: >
+      현재 상황과 EDA에 대해서 자세히 서술해주세요!
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 개선 제안 사항
+    description: >
+      EDA를 바탕으로 개선 하기 위한 방법이 있다면 그것도 자세히 서술해주세요!
+- type: markdown
+  attributes:
+    value: >
+      수고하셨습니다!
