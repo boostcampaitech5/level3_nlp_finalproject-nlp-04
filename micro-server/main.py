@@ -4,8 +4,9 @@ import urllib.request
 from selectolax.parser import HTMLParser, Node
 
 from fastapi import FastAPI
+from typing import List, Dict, Union
 
-def get_search_nodes(code: str, time_range: int) -> list[Node]:
+def get_search_nodes(code: str, time_range: int) -> List[Node]:
     """주어진 code와 time_tange에 대해 NAVER 검색 결과에 대한 node를 반환받습니다. 
 
     Args:
@@ -26,7 +27,7 @@ def get_search_nodes(code: str, time_range: int) -> list[Node]:
 
     return nodes
 
-def get_news_body(url: str) -> dict:
+def get_news_body(url: str) -> Dict:
     """주어진 뉴스 기사 URL에서 기사 제목과 본문을 가져옵니다. 
 
     Args:
@@ -52,7 +53,7 @@ def get_news_body(url: str) -> dict:
 app = FastAPI()
 
 @app.get("/{stock_code}")
-def get_news_docs(stock_code: str, hr: Union[int, None]=0) -> dict:
+def get_news_docs(stock_code: str, hr: Union[int, None]=0) -> Dict:
     """HTTP GET에서 stock_code과 hr을 이용하여 JSON 형태의 기사 제목과 본문을 반환한다. 
 
     Args:
