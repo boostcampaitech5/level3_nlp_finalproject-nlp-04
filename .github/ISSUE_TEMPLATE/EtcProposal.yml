@@ -1,0 +1,25 @@
+name: 기타 변경 제안
+description: 기타 제안점에 대해서 자세히 서술해주세요!
+
+body:
+- type: textarea
+  attributes:
+    label: 현재 상황과 문제점
+    description: >
+      현재 상황과 문제점에 대해서 간략히 서술해주세요.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 개선 제안 사항
+    description: >
+      개선 하기 위한 제안 사항에 대해서 자세히 서술해주세요! 왜 제안 하시는지도 자세히 서술해주세요! 참고하신 문서가 있다면, 링크도 같이 남겨주세요!
+- type: textarea
+  attributes:
+    label: 기대점
+    description: >
+      제안사항이 반영될 시, 개선될 것으로 예상되는 점을 서술해주세요!
+- type: markdown
+  attributes:
+    value: >
+      수고하셨습니다!
