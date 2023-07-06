@@ -53,8 +53,8 @@ def train() :
                             truncation=True
                             )
 
-    train_set = SentimentalDataset(train_encoding, label_train)
-    test_set = SentimentalDataset(test_encoding, label_test)
+    train_set = SentimentalDataset(train_encoding, label_train.reset_index(drop=True))
+    test_set = SentimentalDataset(test_encoding, label_test.reset_index(drop=True))
 
     training_args = TrainingArguments(
         output_dir = './outputs',
