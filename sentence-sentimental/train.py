@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 import pandas as pd
 import sklearn
 from datasets import load_metric
+import wandb
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -53,13 +54,14 @@ train_encoding = tokenizer(
 train_set = SentimentalDataset(train_encoding, data['labels'])
 
 
-
+run = wandb.init(project="final_sentimental", entity="nlp-10")
 training_args = TrainingArguments(
     output_dir = './outputs',
     logging_steps = 50,
     num_train_epochs = 1,
     per_device_train_batch_size=32,
     per_device_eval_batch_size=32,
+    report_to="wandb",
     fp16=True
 )
 
@@ -78,6 +80,7 @@ trainer.train()
 
 print('evaulate start')
 trainer.evaluate()
+run.finish()
 
 print('inference start')
 ## 방법 1
