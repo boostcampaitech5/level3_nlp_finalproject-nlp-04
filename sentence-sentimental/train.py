@@ -103,28 +103,3 @@ def train() :
         predicted_label = model(**temp)
         print(torch.nn.Softmax(dim=-1)(predicted_label.logits))
         # tensor([[0.0108, 0.1264, 0.8628]])
-
-    '''
-    Data
-        - train / validation 나누기
-        - test data 만들기
-        - data 갯수가 늘어야 한다..
-            > 적절한 갯수 물어보기?
-        - seed 고정
-        - 실행 시간 기록
-        
-    compute_metric 및 datasets module화
-
-    실행시간 기록
-
-    모델 저장하고 huggingface에 올리기
-    wandb 생성
-        - 하이퍼 파라미터 튜닝
-        - training arguments 수정
-    
-    출력으로 크롤링한 기사들을 문장 단위로 split 해서 감성 분석으로 한 뒤, csv 파일로 저장 (키워드 추출 팀에게 넘겨주기)
-
-    성능올리는 방법론
-        - ?
-        - ?
-    '''
