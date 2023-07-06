@@ -1,104 +1,130 @@
+import torch
+import pandas as pd
+import sklearn
+import random
+import numpy as np
+
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers import TrainingArguments, Trainer
 from transformers import pipeline
-import torch
-from torch.utils.data import Dataset
-import pandas as pd
-import sklearn
-from datasets import load_metric
 
-def compute_metrics(pred):
-    labels = pred.label_ids
-    preds = pred.predictions.argmax(-1)
+from dataset.datasets import SentimentalDataset
+from metrics.metrics import compute_metrics
 
-    acc = load_metric('accuracy').compute(predictions=preds, references=labels)['accuracy']
-    f1 = load_metric('f1').compute(predictions=preds, references=labels, average='micro')['f1']
+from sklearn.datasets import load_iris # 샘플 데이터 로딩
+from sklearn.model_selection import train_test_split
 
-    return {'accuracy':acc, 'f1':f1}
+from utils.utils import config_seed
 
-class SentimentalDataset(Dataset):
-    def __init__(self, encodings, labels):
-        self.encoding = encodings
-        self.labels = labels
+'''
+- git clone https://github.com/ukairia777/finance_sentiment_corpus.git 먼저 실행
+- readme.md 작성 예정
+'''
+def train() :
+    SEED = 42
 
-    def __getitem__(self, idx):
-        data = {key: val[idx] for key, val in self.encoding.items()}
-        data['labels'] = torch.tensor(self.labels[idx]).long()
-        return data
+    config_seed(SEED)
 
-    def __len__(self):
-        return len(self.labels)
+    device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
 
+    # 모델과 tokenizer 설정
+    MODEL_NAME = 'klue/roberta-base'
+    model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=3).to(device)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
+    # data 받기 및 train/test 나누기
+    data = pd.read_csv('/opt/ml/finance_sentiment_corpus/finance_data.csv')
+    data['labels'] = data['labels'].map({'negative':0, 'neutral':1, 'positive':2})
 
-## git clone https://github.com/ukairia777/finance_sentiment_corpus.git
-## 먼저 해야 함
-## 나중에 readme.md 작성할 예정
+    sentence_train, sentence_test, label_train, label_test = train_test_split(data['kor_sentence'], data['labels'],
+                                                                                test_size=0.2, 
+                                                                                shuffle=True, stratify=data['labels'], # label에 비율을 맞춰서 분리
+                                                                                random_state=SEED)
 
-device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
-MODEL_NAME = 'klue/roberta-base'
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=3).to(device)
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    train_encoding = tokenizer(sentence_train.tolist(),
+                                return_tensors='pt',
+                                padding=True,
+                                truncation=True
+                                )
 
-data = pd.read_csv(
-    '/opt/ml/finance_sentiment_corpus/finance_data.csv'
+    test_encoding = tokenizer(sentence_test.tolist(),
+                            return_tensors='pt',
+                            padding=True,
+                            truncation=True
+                            )
+
+    train_set = SentimentalDataset(train_encoding, label_train)
+    test_set = SentimentalDataset(test_encoding, label_test)
+
+    training_args = TrainingArguments(
+        output_dir = './outputs',
+        logging_steps = 50,
+        num_train_epochs = 1,
+        per_device_train_batch_size=32,
+        per_device_eval_batch_size=32,
+        fp16=True
     )
-data['labels'] = data['labels'].map({'negative':0, 'neutral':1, 'positive':2})
-train_encoding = tokenizer(
-    data['kor_sentence'].tolist(),
-    return_tensors='pt',
-    padding=True,
-    truncation=True
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_set,
+        eval_dataset=train_set,
+        compute_metrics=compute_metrics
     )
-train_set = SentimentalDataset(train_encoding, data['labels'])
 
+    print('---train start---')
+    trainer.train()
 
+    print('---evaulate start---')
+    trainer.evaluate()
 
-training_args = TrainingArguments(
-    output_dir = './outputs',
-    logging_steps = 50,
-    num_train_epochs = 1,
-    per_device_train_batch_size=32,
-    per_device_eval_batch_size=32,
-    fp16=True
-)
+    print('---inference start---')
 
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_set,
-    eval_dataset=train_set,
-    compute_metrics=compute_metrics
-)
+    ## 방법 1
+    model = model.to('cpu') ## 주의
+    my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
+    classifier = pipeline("sentiment-analysis", model=model,
+                        tokenizer=tokenizer)
+    inference_output = classifier(my_text)
+    print(inference_output)
+    # [{'label': 'LABEL_2', 'score': 0.8627877831459045}]
 
-##
+    ## 방법 2
+    my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
+    model.eval()
+    with torch.no_grad() : # 기울기 그래프가 안 생겨서 속도가 빨라진다.
+        temp = tokenizer(
+            my_text,
+            return_tensors='pt',
+            padding=True,
+            truncation=True
+            )
+        predicted_label = model(**temp)
+        print(torch.nn.Softmax(dim=-1)(predicted_label.logits))
+        # tensor([[0.0108, 0.1264, 0.8628]])
 
-print('train start')
-trainer.train()
+    '''
+    Data
+        - train / validation 나누기
+        - test data 만들기
+        - data 갯수가 늘어야 한다..
+            > 적절한 갯수 물어보기?
+        - seed 고정
+        - 실행 시간 기록
+        
+    compute_metric 및 datasets module화
 
-print('evaulate start')
-trainer.evaluate()
+    실행시간 기록
 
-print('inference start')
-## 방법 1
-model = model.to('cpu') ## 주의
-my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
-classifier = pipeline("sentiment-analysis", model=model,
-                      tokenizer=tokenizer)
-inference_output = classifier(my_text)
-print(inference_output)
-# [{'label': 'LABEL_2', 'score': 0.8627877831459045}]
+    모델 저장하고 huggingface에 올리기
+    wandb 생성
+        - 하이퍼 파라미터 튜닝
+        - training arguments 수정
+    
+    출력으로 크롤링한 기사들을 문장 단위로 split 해서 감성 분석으로 한 뒤, csv 파일로 저장 (키워드 추출 팀에게 넘겨주기)
 
-## 방법 2
-my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
-model.eval()
-with torch.no_grad():
-    temp = tokenizer(
-        my_text,
-        return_tensors='pt',
-        padding=True,
-        truncation=True
-        )
-    predicted_label = model(**temp)
-    print(torch.nn.Softmax(dim=-1)(predicted_label.logits))
-    # tensor([[0.0108, 0.1264, 0.8628]])
+    성능올리는 방법론
+        - ?
+        - ?
+    '''
