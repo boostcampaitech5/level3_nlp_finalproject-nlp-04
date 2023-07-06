@@ -23,12 +23,12 @@ def crawl_finance_news(stock_code: str = None, delay: float = 0.0) -> pd.DataFra
 	assert stock_code is not None, "종목코드를 입력해주세요"
 
 	# 뉴스 페이지의 끝을 찾기 위해 크롤링 수행
-	page_max_url = f"https://finance.naver.com/item/news_news.naver?code={stock_code}&page=9999&sm=title_entity_id.basic&clusterId="
+	page_max_url = f"https://finance.naver.com/item/news_news.naver?code={stock_code}"
 	page_max_html = requests.get(page_max_url).text
 	page_max_tree = HTMLParser(page_max_html)
-	nodes = page_max_tree.css("body > div > table.Nnavi > tbody > tr > td")
+	nodes = page_max_tree.css("body > div > table.Nnavi > tbody > tr > td.pgRR > a")
 
-	PAGE_MAX = int(nodes[-1].text(strip=True).replace(",", ""))
+	PAGE_MAX = int(re.findall(r"(?<=page=)\d+", nodes[-1].attributes['href'])[0])
 
 	content_df = pd.DataFrame([], columns=['title', 'link', "writer", 'date', 'content'])
 
