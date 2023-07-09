@@ -21,18 +21,19 @@ from utils.utils import config_seed
 - readme.md 작성 예정
 '''
 def train() :
+    ## 설정
     SEED = 42
-
     config_seed(SEED)
-
     device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
 
-    # 모델과 tokenizer 설정
+
+    ## 모델
     MODEL_NAME = 'klue/roberta-base'
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=3).to(device)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-    # data 받기 및 train/test 나누기
+
+    ## 데이터
     data = pd.read_csv('/opt/ml/finance_sentiment_corpus/finance_data.csv')
     data['labels'] = data['labels'].map({'negative':0, 'neutral':1, 'positive':2})
 
@@ -46,13 +47,11 @@ def train() :
                                 padding=True,
                                 truncation=True
                                 )
-
     val_encoding = tokenizer(sentence_val.tolist(),
                             return_tensors='pt',
                             padding=True,
                             truncation=True
                             )
-
     train_set = SentimentalDataset(train_encoding, label_train.reset_index(drop=True))
     val_set = SentimentalDataset(val_encoding, label_val.reset_index(drop=True))
 
@@ -64,6 +63,8 @@ def train() :
                                 )
     val2_set = SentimentalDataset(val2_encoding, data2['labels'])
 
+    
+    ## 학습
     training_args = TrainingArguments(
         output_dir = './outputs',
         logging_steps = 50,
@@ -72,7 +73,6 @@ def train() :
         per_device_eval_batch_size=32,
         fp16=True
     )
-
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -84,15 +84,15 @@ def train() :
     print('---train start---')
     trainer.train()
 
+
+    ## 평가
     print('---val evaulate start---')
     trainer.evaluate(eval_dataset=val_set, metric_key_prefix='val1')
     
     print('---test evaluate start---')
     trainer.evaluate(eval_dataset=val2_set, metric_key_prefix='val2')
 
-    print('---inference start---')
-
-    ## 방법 1
+    print('---inference start---') ## 추론 방법 1
     model = model.to('cpu') ## 주의
     my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
     classifier = pipeline("sentiment-analysis", model=model,
@@ -101,10 +101,10 @@ def train() :
     print(inference_output)
     # [{'label': 'LABEL_2', 'score': 0.8627877831459045}]
 
-    ## 방법 2
+    print('---inference start---') ## 추론 방법 2
     my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
     model.eval()
-    with torch.no_grad() : # 기울기 그래프가 안 생겨서 속도가 빨라진다.
+    with torch.no_grad() :
         temp = tokenizer(
             my_text,
             return_tensors='pt',
