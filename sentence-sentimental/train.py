@@ -36,10 +36,10 @@ def train() :
     data = pd.read_csv('/opt/ml/finance_sentiment_corpus/finance_data.csv')
     data['labels'] = data['labels'].map({'negative':0, 'neutral':1, 'positive':2})
 
-    sentence_train, sentence_test, label_train, label_test = train_test_split(data['kor_sentence'], data['labels'],
-                                                                                test_size=0.2, 
-                                                                                shuffle=True, stratify=data['labels'], # label에 비율을 맞춰서 분리
-                                                                                random_state=SEED)
+    temp = train_test_split(data['kor_sentence'], data['labels'],
+                            test_size=0.2, shuffle=True, stratify=data['labels'], # label에 비율을 맞춰서 분리
+                            random_state=SEED)
+    sentence_train, sentence_val, label_train, label_val = temp
 
     train_encoding = tokenizer(sentence_train.tolist(),
                                 return_tensors='pt',
@@ -47,14 +47,22 @@ def train() :
                                 truncation=True
                                 )
 
-    test_encoding = tokenizer(sentence_test.tolist(),
+    val_encoding = tokenizer(sentence_val.tolist(),
                             return_tensors='pt',
                             padding=True,
                             truncation=True
                             )
 
     train_set = SentimentalDataset(train_encoding, label_train.reset_index(drop=True))
-    test_set = SentimentalDataset(test_encoding, label_test.reset_index(drop=True))
+    val_set = SentimentalDataset(val_encoding, label_val.reset_index(drop=True))
+
+    data2 = pd.read_csv('/opt/ml/finance_sentiment_corpus/native_korean_news_100.csv')
+    val2_encoding = tokenizer(data2['kor_sentence'].tolist(),
+                                return_tensors='pt',
+                                padding=True,
+                                truncation=True
+                                )
+    val2_set = SentimentalDataset(val2_encoding, data2['labels'])
 
     training_args = TrainingArguments(
         output_dir = './outputs',
@@ -76,8 +84,11 @@ def train() :
     print('---train start---')
     trainer.train()
 
-    print('---evaulate start---')
-    trainer.evaluate()
+    print('---val evaulate start---')
+    trainer.evaluate(eval_dataset=val_set, metric_key_prefix='val1')
+    
+    print('---test evaluate start---')
+    trainer.evaluate(eval_dataset=val2_set, metric_key_prefix='val2')
 
     print('---inference start---')
 
