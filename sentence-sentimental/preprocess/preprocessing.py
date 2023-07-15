@@ -11,8 +11,7 @@ def remove_text(texts) :
         preprocessed_text = text
     
     return preprocessed_text
-    
-    
+
 def remove_press(texts):
     """
     언론 정보를 제거
@@ -93,6 +92,23 @@ def remove_parentheses(texts):
     
     return processed_text
 
+def remove_copyright(texts):
+    """
+    뉴스 내 포함된 저작권 관련 텍스트를 제거합니다.
+    """
+    re_patterns = [
+        r"\<저작권자(\(c\)|ⓒ|©|\(Copyright\)|(\(c\))|(\(C\))).+?\>",
+        r"저작권자\(c\)|ⓒ|©|(Copyright)|(\(c\))|(\(C\))"
+    ]
+    preprocessed_text = ''
+    
+    for re_pattern in re_patterns :
+        text = re.sub(re_pattern, "", texts)
+    if text:
+        preprocessed_text = text
+        
+    return preprocessed_text
+
 def split_sentence(texts) :
     sentence_list = texts.split(". ")
     
@@ -126,10 +142,17 @@ def remove_url(texts):
     return preprocessed_text
 
 def all_preprocessing(texts) :
-    # texts = remove_text(texts)
+    texts = remove_text(texts)
     texts = remove_press(texts)
     texts = remove_photo_info(texts)
-    texts = remove_url(texts)
+    texts = remove_email(texts)
+    texts = remove_copyright(texts)
+    texts = remove_day(texts)
+    texts = remove_triangle(texts)
+    texts = remove_parentheses(texts)
+    texts = remove_copyright(texts)
+    
+    texts = change_quotation(texts)
     
     return texts
 
@@ -144,12 +167,13 @@ def preprocess_dataframe_to_sentence(df):
     for index, row in df.iterrows():
         title = row['title']
         date = row['date']
-        content = row['content_sentence']
+        content = row['content']
         
         content = split_sentence(content)
 
         for sentence in content:
             l = len(df_sentence)
+            sentence = all_preprocessing(sentence)
             new_row = {'title': title, 'date': date, 'content_sentence': sentence}
             
             new_row = pd.DataFrame(new_row, index = [l])
