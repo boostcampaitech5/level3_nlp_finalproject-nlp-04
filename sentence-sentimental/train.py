@@ -42,15 +42,28 @@ def train() :
                             random_state=SEED)
     sentence_train, sentence_val, label_train, label_val = temp
 
+    max_length=30
+    stride=0
+    ## TODO 임의의 값으로 차후 수정
     train_encoding = tokenizer(sentence_train.tolist(),
                                 return_tensors='pt',
                                 padding=True,
-                                truncation=True
+                                truncation=True,
+                                ##
+                                max_length=max_length,
+                                stride=stride,
+                                return_overflowing_tokens=True,
+                                return_offsets_mapping=False
                                 )
     val_encoding = tokenizer(sentence_val.tolist(),
                             return_tensors='pt',
                             padding=True,
-                            truncation=True
+                            truncation=True,
+                            ##
+                            max_length=max_length,
+                            stride=stride,
+                            return_overflowing_tokens=True,
+                            return_offsets_mapping=False
                             )
     train_set = SentimentalDataset(train_encoding, label_train.reset_index(drop=True))
     val_set = SentimentalDataset(val_encoding, label_val.reset_index(drop=True))
@@ -59,7 +72,12 @@ def train() :
     val2_encoding = tokenizer(data2['kor_sentence'].tolist(),
                                 return_tensors='pt',
                                 padding=True,
-                                truncation=True
+                                truncation=True,
+                                ##
+                                max_length=max_length,
+                                stride=stride,
+                                return_overflowing_tokens=True,
+                                return_offsets_mapping=False
                                 )
     val2_set = SentimentalDataset(val2_encoding, data2['labels'])
 
@@ -92,25 +110,38 @@ def train() :
     print('---test evaluate start---')
     trainer.evaluate(eval_dataset=val2_set, metric_key_prefix='val2')
 
-    print('---inference start---') ## 추론 방법 1
-    model = model.to('cpu') ## 주의
-    my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
-    classifier = pipeline("sentiment-analysis", model=model,
-                        tokenizer=tokenizer)
-    inference_output = classifier(my_text)
-    print(inference_output)
-    # [{'label': 'LABEL_2', 'score': 0.8627877831459045}]
+    # print('---inference start---') ## 추론 방법 1
+    # model = model.to('cpu') ## 주의
+    # my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
+    # classifier = pipeline("sentiment-analysis", model=model,
+    #                     tokenizer=tokenizer)
+    # inference_output = classifier(my_text)
+    # print(inference_output)
+    # # [{'label': 'LABEL_2', 'score': 0.8627877831459045}]
 
     print('---inference start---') ## 추론 방법 2
-    my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'
+    my_text = '삼성전자, 올해부터 다운턴 끝나고 매출 상승 시작할 듯'*10
+    model = model.to('cpu')
     model.eval()
     with torch.no_grad() :
         temp = tokenizer(
             my_text,
             return_tensors='pt',
             padding=True,
-            truncation=True
+            truncation=True,
+            ##
+            max_length=max_length,
+            stride=stride,
+            return_overflowing_tokens=True,
+            return_offsets_mapping=False
             )
+        temp = {
+            'input_ids':temp['input_ids'],
+            'token_type_ids':temp['token_type_ids'],
+            'attention_mask':temp['attention_mask'],
+        }
         predicted_label = model(**temp)
-        print(torch.nn.Softmax(dim=-1)(predicted_label.logits))
+        print(torch.nn.Softmax(dim=-1)(predicted_label.logits).mean(dim=0))
         # tensor([[0.0108, 0.1264, 0.8628]])
+if __name__ == '__main__':
+    train()
