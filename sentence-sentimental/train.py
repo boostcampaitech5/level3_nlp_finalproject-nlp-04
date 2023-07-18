@@ -3,6 +3,7 @@ import pandas as pd
 import sklearn
 import random
 import numpy as np
+import wandb
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers import TrainingArguments, Trainer
@@ -83,13 +84,15 @@ def train() :
 
     
     ## 학습
+    run = wandb.init(project="final_sentimental", entity="nlp-10")
     training_args = TrainingArguments(
         output_dir = './outputs',
         logging_steps = 50,
         num_train_epochs = 1,
         per_device_train_batch_size=32,
         per_device_eval_batch_size=32,
-        fp16=True
+        fp16=True,
+        report_to="wandb",
     )
     trainer = Trainer(
         model=model,
