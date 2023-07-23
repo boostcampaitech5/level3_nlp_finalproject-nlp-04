@@ -10,7 +10,7 @@ import {
 } from "@tremor/react"
 import { supabase } from "../supabaseClient";
 
-
+// 표기를 위한 임시 데이터. 
 const data = [
     { color: "gray", tooltip: "Operational" },
     { color: "gray", tooltip: "Operational" },
@@ -47,9 +47,6 @@ const data = [
 export default function SummaryCard() {
     const [newsSummarized, setNewsSummarized] = useState("")
     const [keyword, setKeyword] = useState("#7nm 공정")
-
-    // useEffect로
-    // const [newsKeywordList, setnewsKeywordList] = useState([])
 
     // useEffect로 함수 call. 
     useEffect(() => {

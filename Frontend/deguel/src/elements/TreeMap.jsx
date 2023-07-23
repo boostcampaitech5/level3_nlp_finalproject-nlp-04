@@ -47,6 +47,12 @@ export default function TreeMap(props) {
 	const [kewords, setKeywords] = useState([]);
 	const [isClicked, setIsClicked] = useState(false);
 
+	// 객체 TreeMap에 대한 필수 prop 정의. 
+	TreeMap.propTypes = {
+		color: PropTypes.string.isRequired,
+		title: PropTypes.string.isRequired,
+	}
+
 	// useEffect로 함수 call. 
     useEffect(() => {
         getInformations();
@@ -59,11 +65,7 @@ export default function TreeMap(props) {
         setKeywords(data[0].keywords);
     }
 
-	TreeMap.propTypes = {
-		color: PropTypes.string.isRequired,
-		title: PropTypes.string.isRequired,
-	}
-
+	// TreeMap의 색상 설정 정의. 
 	const config = {
 		type: 'treemap',
 		data: {
@@ -87,6 +89,7 @@ export default function TreeMap(props) {
 		},
 	};
 
+	// TreeMap의 표기 설정 정의. 
 	const options = {
 		plugins: {
 			title: {
