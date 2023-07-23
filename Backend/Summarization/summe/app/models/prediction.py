@@ -11,30 +11,11 @@ class MachineLearningResponse(BaseModel):
 class HealthResponse(BaseModel):
     loaded: bool
 
-
-class MachineLearningDataInput(BaseModel):
-    feature1: float
-    feature2: float
-    feature3: float
-    feature4: float
-    feature5: float
-
-    def get_np_array(self):
-        return np.array(
-            [
-                [
-                    self.feature1,
-                    self.feature2,
-                    self.feature3,
-                    self.feature4,
-                    self.feature5,
-                ]
-            ]
-        )
     
 class SummerizedResponse(BaseModel):
     arr_split: List
     arr_summerized: List
+    
 
 class TextDataInput(BaseModel):
     prompt: str = "아래의 뉴스를 사실에 입각하여 맥락의 내용을 요약해줘."

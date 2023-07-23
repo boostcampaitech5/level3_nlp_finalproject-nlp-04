@@ -25,6 +25,7 @@ logging.basicConfig(
 )
 logger.configure(handlers=[{"sink": sys.stderr, "level": LOGGING_LEVEL}])
 
+# 모델이 저장되어 있어야 합니다. 
 MODEL_PATH = config("MODEL_PATH", default="./ml/model/")
 MODEL_NAME_T5 = config("MODEL_NAME_T5", default="summary_with_news/checkpoint-11000")
 MODEL_NAME_POLYGLOT = config("MODEL_NAME_POLYGLOT", default="summary_with_news/checkpoint-11000")
