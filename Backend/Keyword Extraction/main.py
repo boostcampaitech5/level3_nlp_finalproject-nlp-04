@@ -1,5 +1,8 @@
 import sys
 
+import pendulum
+
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
@@ -8,13 +11,17 @@ from pydantic import BaseModel, Field
 from uuid import UUID, uuid4
 from typing import List, Union, Optional, Dict, Any, Tuple
 
+
 from datetime import datetime
 import pandas as pd
 
+
 sys.path.append(str(Path.home().joinpath("level3_nlp_finalproject-nlp-04")))
 from keyword_extractor.model import KeyBert
+from utils.secrets import Secrets
 
 app = FastAPI()
+tz = pendulum.timezone("Asia/Seoul")
 
 @app.get("/")
 def hello_word():

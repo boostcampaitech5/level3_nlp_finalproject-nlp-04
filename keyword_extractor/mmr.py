@@ -11,6 +11,28 @@ def mmr(
 		top_k: int = 5,
 		diversity: float = 0.7,
 		) -> List[Tuple[str, float]]:
+	"""Maximal Marginal Relevance
+
+	Calculate MMR score for each word and extract top-k keywords
+
+	Args:
+		doc_embedding:
+			Embedding of document
+		word_embedding:
+			Embedding of words
+		words:
+			Words to extract keywords
+		top_k:
+			Number of keywords to extract
+		diversity:
+			Diversity for MMR - (0 ~ 1)
+
+	Returns:
+		Keywords and scores: List of tuples (word, score)
+	"""
+
+	assert 0 <= diversity <= 1, "Diversity should be between 0 and 1"
+
 	word_doc_sim = cosine_similarity(word_embedding, doc_embedding)
 	word_sim = cosine_similarity(word_embedding)
 
