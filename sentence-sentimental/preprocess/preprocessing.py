@@ -170,6 +170,10 @@ def remove_special_str(texts) :
     
     return preprocessed_text
 
+def remove_space_dup(texts):
+    preprocessed_text = re.sub(r"\s+", " ", texts)
+    
+    return preprocessed_text
 
 def all_preprocessing(texts) :
     texts = str(texts)
@@ -184,6 +188,7 @@ def all_preprocessing(texts) :
     texts = remove_special_str(texts)
     
     texts = change_quotation(texts)
+    texts = remove_space_dup(texts)
     
     return texts
 
