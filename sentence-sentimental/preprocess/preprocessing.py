@@ -2,6 +2,9 @@ import re
 import pandas as pd
 
 def remove_text(texts) :
+    """
+    재판매 및 DB금지 를 제거.
+    """
     pattern = r"\*? ?재판매 및 DB 금지"
     
     preprocessed_text = ''
@@ -20,8 +23,9 @@ def remove_press(texts):
     """
     re_patterns = [
         r"\([^(]*?(뉴스|경제|일보|미디어|데일리|한겨례|타임즈|위키트리)\)",
-        r"[가-힣]{0,4} (기자|선임기자|수습기자|특파원|객원기자|논설고문|통신원|연구소장) =?",  # 이름 + 기자
-        r"[가-힣]{1,}(뉴스|경제|일보|미디어|데일리|한겨례|타임|위키트리)",  # (... 연합뉴스) ..
+        r"[가-힣]{0,4}\s+(기자|선임기자|수습기자|특파원|객원기자|논설고문|통신원|연구소장)\s?=?",  # 이름 + 기자
+        # r"[가-힣]{1,}(뉴스|경제|일보|미디어|데일리|한겨례|타임|위키트리)",  # (... 연합뉴스) ..
+        r"(\/?뉴스|news|News)\d",  # (... 연합뉴스) ..
         r"[\(\[]\s+[\)\]]",  # (  )
         r"[\(\[]=\s+[\)\]]",  # (=  )
         r"[\)\]]\s+=[\)\]]",  # (  =)
@@ -29,9 +33,9 @@ def remove_press(texts):
 
     preprocessed_text = ''
     for re_pattern in re_patterns :
-        text = re.sub(re_pattern, "", str(texts))
-    if text :
-        preprocessed_text = text
+        texts = re.sub(re_pattern, "", str(texts))
+    if texts :
+        preprocessed_text = texts
             
     return preprocessed_text
 
@@ -43,11 +47,17 @@ def remove_photo_info(texts):
     preprocessed_text = []
 
     preprocessed_text = re.sub(r"\(출처 ?= ?.+\) |\(사진 ?= ?.+\) |\(자료 ?= ?.+\)| \(자료사진\) |사진=.+기자 ", "", texts).strip()
-    preprocessed_text = re.sub(r"\/사진제공?=\S+?\s+ | \/\s사진?=", " ", preprocessed_text)
+    preprocessed_text = re.sub(r"\/?사진제공(=|\:)\w+", " ", preprocessed_text)
+    preprocessed_text = re.sub(r"\/? ?(사진|그래픽) ?= ?\w+", " ", preprocessed_text)
+    preprocessed_text = re.sub(r"\/\w+\s?제공", " ", preprocessed_text)
+    # preprocessed_text = re.sub(r"\/사진제공=\S?+?\s+ | \/\s사진?=", " ", preprocessed_text)
             
     return preprocessed_text
 
 def change_quotation(texts) :
+    """
+    " -> '
+    """
     pattern = r"\""
     replacement = "\'"
     
@@ -70,14 +80,18 @@ def remove_email(texts):
 def remove_day(texts):
     """
     날짜와 관련된 숫자 제거
+    2022.01.01 -> ""
     """
-    pattern = r'\d{4}\.\d{2}\.\d{2}'
+    pattern = r'\d{4}\.\d{1,2}\.\d{1,2}\.?'
     
     text = re.sub(pattern, "", texts)
     return text
 
 def remove_triangle(texts):
-    pattern = r'▶?\s.+='
+    """
+    "▶ 임의의 문구 =" 를 제거한다.
+    """
+    pattern = r'▶\s?.+='
     
     text = re.sub(pattern, "", texts)
     return text
@@ -141,7 +155,28 @@ def remove_url(texts):
         
     return preprocessed_text
 
+def remove_special_str(texts) :
+    """
+    1. ◆◇▲▼■●▶◀△▽→←⇒⇔➜➔❯❮ 해당하는 문자들은 다 제거한다.
+    2. ↑ 해당하는 문자를 증가로 치환한다.
+    3. ↓ 해당하는 문자를 감소로 치환한다.
+    """
+    preprocessed_text = ''
+    
+    pattern = r"[◆◇▲▼■●▶◀△▽→←⇒⇔➜➔❯❮]"
+    preprocessed_text = re.sub(pattern, "", texts)
+    preprocessed_text = re.sub("\↑", "증가 ", texts)
+    preprocessed_text = re.sub("\↓", "감소 ", texts)
+    
+    return preprocessed_text
+
+def remove_space_dup(texts):
+    preprocessed_text = re.sub(r"\s+", " ", texts)
+    
+    return preprocessed_text
+
 def all_preprocessing(texts) :
+    texts = str(texts)
     texts = remove_text(texts)
     texts = remove_press(texts)
     texts = remove_photo_info(texts)
@@ -150,9 +185,10 @@ def all_preprocessing(texts) :
     texts = remove_day(texts)
     texts = remove_triangle(texts)
     texts = remove_parentheses(texts)
-    texts = remove_copyright(texts)
+    texts = remove_special_str(texts)
     
     texts = change_quotation(texts)
+    texts = remove_space_dup(texts)
     
     return texts
 
@@ -182,5 +218,7 @@ def preprocess_dataframe_to_sentence(df):
     return df_sentence
 
 if __name__ == "__main__" :
-    text = '여기에 넣고 싶은 문구를 넣어서 실험해보세요.'
+    text = "실험해보고 싶은 문구를 넣어보세요."
+
+    text = all_preprocessing(text)
     print(text)
