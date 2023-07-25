@@ -1,9 +1,12 @@
 import os
+import re
 
 from loguru import logger
 
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, LlamaTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel, PeftConfig
+
+from kss import split_sentences
 
 from core.errors import PredictException, ModelLoadException
 from core.config import MODEL_NAME_T5, MODEL_NAME_POLYGLOT, MODEL_PATH
@@ -29,19 +32,24 @@ class MachineLearningModelHandlerT5(MachineLearningModelHandler):
             cls.get_model(load_wrapper)
             
         n = input["num_split"]
-        news_split = [x+"다." for x in input["contents"].split("다.") if x]
+        
+        # 2개 이상의 공백 제거. 
+        input["contents"] = re.sub(r'\s{2,}', ' ', input["contents"])
+
+        news_split = split_sentences(input["contents"])
         arr_para = []
         arr_para_sum = []
 
-        for i in range(0, len(news_split) // n):
+        for i in range(0, len(news_split) // n + 1):
             arr_para.append("".join(news_split[i * n:i * n + n]))
 
         clf = cls.get_model(load_wrapper)
         if hasattr(clf, method):
             for para in arr_para:
-                news_tokenized = len(clf.tokenizer(para)["input_ids"])
+                # news_tokenized = len(clf.tokenizer(para)["input_ids"])
                 # arr_para_sum.append(clf(para, min_length=news_tokenized // 2, max_length=news_tokenized // 2 + (news_tokenized // 4))[0]["summary_text"])
-                arr_para_sum.append(clf(para, **input["options"],)[0]["summary_text"])
+                text = clf(para, **input["options"],)[0]["summary_text"]
+                arr_para_sum.append(cls.clean_paragraph(text))
 
             return arr_para, arr_para_sum
         raise PredictException(f"'{method}' attribute is missing")
@@ -63,7 +71,18 @@ class MachineLearningModelHandlerT5(MachineLearningModelHandler):
             logger.error(message)
             raise ModelLoadException(message)
         return model
-    
+
+    @classmethod
+    def clean_paragraph(cls, text) -> str:
+        list_sentence = split_sentences(text)
+        str_clean = ""
+
+        for sentence in list_sentence:
+            if "다." in sentence:
+                str_clean = sentence + " "
+                break
+        
+        return str_clean
 
 class MachineLearningModelHandlerPolyglot(MachineLearningModelHandler):
     model = None
@@ -86,9 +105,10 @@ class MachineLearningModelHandlerPolyglot(MachineLearningModelHandler):
             ),
             **input["options"],
         )
+        result = cls.tokenizer.decode(result[0])[len(x_prompt):]
 
         arr_para = [x_prompt]
-        arr_para_sum = [cls.tokenizer.decode(result[0])[len(x_prompt):]]
+        arr_para_sum = [cls.clean_paragraph(result)]
 
         return arr_para, arr_para_sum
         # raise PredictException(f"'{method}' attribute is missing")
@@ -120,3 +140,14 @@ class MachineLearningModelHandlerPolyglot(MachineLearningModelHandler):
             logger.error(message)
             raise ModelLoadException(message)
         return model, tokenizer
+    
+    @classmethod
+    def clean_paragraph(cls, text) -> str:
+        list_sentence = list(dict.fromkeys(split_sentences(text)))
+        str_clean = ""
+
+        for sentence in list_sentence:
+            if "다." in sentence:
+                str_clean += sentence + " "
+        
+        return str_clean + "\n"
