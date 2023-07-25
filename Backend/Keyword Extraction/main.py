@@ -29,12 +29,11 @@ def hello_word():
 
 
 class Item(BaseModel):
-    titles: Union[str, List[str]] = []
-    contents: Union[str, List[str]] = []
-    dates: Union[str, List[str]] = []
+    titles: Union[str, List[str]]
+    contents: Union[str, List[str]]
 
 class Parameter(BaseModel):
-    stop_words: Optional[List[str]] = None
+    stop_words: Optional[Union[str, List[str]]] = None
     top_k: Optional[int] = 5
     diversity: Optional[float] = 0.7
     min_df: Optional[int] = 1
@@ -43,26 +42,6 @@ class Parameter(BaseModel):
     tag_type: Optional[str] = "okt"
 
 
-def df_transform(data_input: Item):
-    # DataFrame으로 변환하는 함수
-    df = pd.DataFrame({'title': data_input.titles,
-                    	'content': data_input.contents,
-                        'date': data_input.dates})
-    return df
-
-def process_input_data(data_input: Item):
-    # 단일 문자열을 리스트로 변환하는 함수
-    def convert_to_list(item):
-        if isinstance(item, str):
-            return [item]
-        return item
-
-    # data_input의 필드에 대해 타입 변환 수행
-    data_input.titles = convert_to_list(data_input.titles)
-    data_input.contents = convert_to_list(data_input.contents)
-    data_input.dates = convert_to_list(data_input.dates)
-
-    return data_input
 
 def get_model(model_number):
     # model 반환 함수
@@ -81,21 +60,18 @@ def get_model(model_number):
     description="뉴스 기사에서 키워드를 추출하는 요약하는 API 입니다. `model_number`에는 `1`, `2`,`3` 중 하나를 선택하시면 됩니다.\
         기본 모델 목록 1: jhgan/ko-sroberta-multitask, 2:snunlp/KR-SBERT-V40K-klueNLI-augSTS, 3:sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 )
-async def keywordExtraction(model_number: str, data_input: Item = Depends(process_input_data), parameter: Parameter = Depends()):
+async def keywordExtraction(model_number: str, data_input: Item, parameter: Parameter = Depends()):
     if not model_number in ["1", "2","3"]:
         raise HTTPException(status_code=404, detail="'model_number' argument invalid! Type model name. \n Model: 1, 2, 3")
 
     if not data_input:
         raise HTTPException(status_code=404, detail="'data_input' argument invalid!")
-    try:
-        df = df_transform(data_input)
 
-    except Exception as err:
-        raise HTTPException(status_code=500, detail=f"Exception: {err}")
 
     model = get_model(model_number)
 
-    result = model.extract_keywords(df['content'].tolist(),
+    result = model.extract_keywords(data_input.titles,
+                                    data_input.contents,
                                     stop_words = parameter.stop_words if parameter.stop_words else [],
                                     top_k = parameter.top_k,
                                     diversity = parameter.diversity,

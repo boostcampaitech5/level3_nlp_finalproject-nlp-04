@@ -27,6 +27,7 @@ class KeyBert:
 		self.model = SentenceTransformer(model_name)
 
 	def extract_keywords(self,
+						 titles: Union[str, List[str]],
 						 docs: Union[str, List[str]],
 						 keyphrase_ngram_range: Tuple[int, int]=(1, 1),
 						 stop_words:Union[str, List[str]] = [],
@@ -43,6 +44,8 @@ class KeyBert:
 		추출된 후보 키워드를 Sentence-BERT를 이용해서 문서와의 유사도(MMR)를 계산
 
 		Args:
+			titles:
+				Titles to extract keywords
 			docs:
 			 	Documents to extract keywords
 			keyphrase_ngram_range:
@@ -74,6 +77,18 @@ class KeyBert:
 			else:
 				return []
 
+		if isinstance(titles, str):
+			if titles:
+				titles = [titles]
+			else:
+				return []
+
+		if isinstance(stop_words, str):
+			if stop_words:
+				stop_words = [stop_words]
+			else:
+				stop_words = []
+
 		# Count Vectorizer
 		if vectorizer_type == "count":
 			vectorizer = CountVectorizer(ngram_range=keyphrase_ngram_range, min_df=min_df, stop_words=stop_words).fit(docs)
@@ -102,55 +117,13 @@ class KeyBert:
 			keywords = mmr(doc_emb,
 						   candidate_emb,
 						   candidate_words,
+						   stop_words,
 						   top_k,
-						   diversity)
+						   diversity,
+						   tag_type)
 
-			keywords = self.post_processing(keywords, tag_type, stop_words)
+			# keywords = self.post_processing(keywords, tag_type, stop_words)
 
 			all_keywords.append(keywords)
 
 		return all_keywords
-
-
-	def post_processing(self,
-						keywords,
-						tag_type:str = None,
-						stop_words:Union[str, List[str]] = [],
-						) -> List[Tuple[str, float]]:
-		"""Post-processing for extracted keywords
-
-		추출된 키워드의 오른쪽 경계의 품사를 확인하고, 명사가 아니면 차례로 제거
-
-		Args:
-			keywords:
-			 	Keywords to post-process
-			tag_type:
-			 	Tagger type for post-processing
-			stop_words:
-			 	Stop words for post-processing
-
-		Returns:
-			List of keywords and scores:
-				[("keyword1", score1), ("keyword2", score2), ...]
-		"""
-		assert tag_type is not None, "tag_type을 입력해주세요."
-
-		processed_keywords = []
-
-		if tag_type == "mecab":
-			tagger = Mecab()
-		elif tag_type == "okt":
-			tagger = Okt()
-
-		for word, score in keywords:
-			ap = tagger.pos(word)
-
-			while len(ap) != 0 and "N" != ap[-1][1][0]: # 맨 우측에서부터 명사가 아닌 것을 제거
-				ap.pop()
-
-			keyword = "".join([a[0] for a in ap])
-
-			if keyword and (keyword not in stop_words): # 키워드가 남아있으면, 추가
-				processed_keywords.append((keyword, score))
-
-		return processed_keywords
