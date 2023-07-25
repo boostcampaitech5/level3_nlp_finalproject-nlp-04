@@ -49,7 +49,10 @@ class MachineLearningModelHandlerT5(MachineLearningModelHandler):
                 # news_tokenized = len(clf.tokenizer(para)["input_ids"])
                 # arr_para_sum.append(clf(para, min_length=news_tokenized // 2, max_length=news_tokenized // 2 + (news_tokenized // 4))[0]["summary_text"])
                 text = clf(para, **input["options"],)[0]["summary_text"]
-                arr_para_sum.append(cls.clean_paragraph(text))
+                text = re.sub(r'\s{2,}', ' ', text)
+                text = cls.clean_paragraph(text)
+
+                arr_para_sum.append(text)
 
             return arr_para, arr_para_sum
         raise PredictException(f"'{method}' attribute is missing")
@@ -79,7 +82,8 @@ class MachineLearningModelHandlerT5(MachineLearningModelHandler):
 
         for sentence in list_sentence:
             if "다." in sentence:
-                str_clean = sentence + " "
+                # str_clean = sentence + " "
+                str_clean = sentence.split("다.")[0] + "다. "
                 break
         
         return str_clean
@@ -92,10 +96,13 @@ class MachineLearningModelHandlerPolyglot(MachineLearningModelHandler):
 
     @classmethod
     def predict(cls, input, load_wrapper=None, method="predict"):
+
         if cls.model == None:
             cls.get_model(load_wrapper)
 
         x_prompt = cls.prompt(input["prompt"], input["contents"])
+        list_badword = [cls.tokenizer("###", add_special_tokens=False).input_ids,
+                        cls.tokenizer("\n", add_special_tokens=False).input_ids,]
         
         result = cls.model.generate(
             **cls.tokenizer(
@@ -103,6 +110,7 @@ class MachineLearningModelHandlerPolyglot(MachineLearningModelHandler):
                 return_tensors='pt',
                 return_token_type_ids=False
             ),
+            bad_words_ids=list_badword,
             **input["options"],
         )
         result = cls.tokenizer.decode(result[0])[len(x_prompt):]
