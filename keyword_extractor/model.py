@@ -27,8 +27,8 @@ class KeyBert:
 		self.model = SentenceTransformer(model_name)
 
 	def extract_keywords(self,
-						 titles: Union[str, List[str]],
 						 docs: Union[str, List[str]],
+						 titles: Union[str, List[str]] = None,
 						 keyphrase_ngram_range: Tuple[int, int]=(1, 1),
 						 stop_words:Union[str, List[str]] = [],
 						 top_k:int = 5,

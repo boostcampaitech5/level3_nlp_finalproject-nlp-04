@@ -50,7 +50,12 @@ def mmr(
 		target_sim = np.max(word_sim[candidate_idx][:, keywords_idx], axis=1)
 
 		mmr = (1-diversity) * candidate_sim - diversity * target_sim.reshape(-1, 1)
-		mmr_idx = candidate_idx[np.argmax(mmr)]
+		# 짧은 기사에서 candidate_idx가 모두 지워지는 경우 에러 처리
+		try:
+			mmr_idx = candidate_idx[np.argmax(mmr)]
+		except ValueError:
+			print("Raise ValueError: mmr_idx")
+			break
 
 		post_processed_keyword = post_processing(words[mmr_idx],
 												 tag_type=tag_type)
