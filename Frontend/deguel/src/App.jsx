@@ -8,8 +8,12 @@ import {
 	TabGroup,
 	TabPanel,
 	TabPanels,
+	Grid,
+	Col,
+	Card,
 } from "@tremor/react";
 import TreemMap from "./elements/TreeMap";
+import SummaryCard from "./elements/Summary";
 
 export default function App() {
 
@@ -36,24 +40,29 @@ export default function App() {
                             <TreemMap className="h-80" color="tomato" title="부정 키워드"/>
 						</div>
 					</TabPanel>
-
-					{/*<TabPanel>
-						<Grid numItemsLg={6} className="gap-6 mt-6">
-							<Col numColSpanLg={4}>
-								<Chart>
-									<div className="h-96" />
-								</Chart>
-							</Col>
-			
-							<Col numColSpanLg={2}>
-									<Summary>
-										<div className="h-96" />
-									</Summary>
-							</Col>
-						</Grid>
-					</TabPanel>*/}
 				</TabPanels>
 			</TabGroup>
+
+			<Title className="mt-6">사용자 추천 기사</Title>
+			<Text>많은 사용자가 본 뉴스에요. </Text>
+
+			<Grid numItemsLg={2} className="gap-6 mt-6">
+				<Col numColSpanLg={1}>
+					<Card>
+						<SummaryCard isMain={true}>
+							<div className="h-96" />
+						</SummaryCard>
+					</Card>
+				</Col>
+
+				<Col numColSpanLg={1}>
+					<Card>
+						<SummaryCard isMain={true}>
+							<div className="h-96" />
+						</SummaryCard>
+					</Card>
+				</Col>
+			</Grid>
 		</main>
 	);
 }
