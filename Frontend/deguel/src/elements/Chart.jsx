@@ -10,8 +10,8 @@ import {
 		Flex,
 		BadgeDelta,
 		Metric,
-	} from "@tremor/react";
-	
+} from "@tremor/react";
+
 import { useEffect, useState } from "react";
 import { startOfYear, subDays } from "date-fns";
 import { supabase } from "../supabaseClient";
@@ -164,4 +164,4 @@ export default function LineChartTab() {
 			</TabGroup>
 		</div>
 	);
-} 
+}  
