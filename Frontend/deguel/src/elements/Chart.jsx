@@ -34,7 +34,7 @@ export default function LineChartTab() {
 
 	// Supabase에서 데이터 가져오기. 
 	async function getInformations() {
-		const { data } = await supabase.from("price").select("*").order('date', { ascending: true });
+		const { data } = await supabase.from("price").select("*").eq("ticker", "005930.KS").order('date', { ascending: true });
 		setStockPrice(data);
 		getFilteredData(selectedIndex);
 	}
