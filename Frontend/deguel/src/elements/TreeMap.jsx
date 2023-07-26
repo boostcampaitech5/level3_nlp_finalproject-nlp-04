@@ -8,7 +8,7 @@ import {
 	Legend,
 } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
-import { Chart } from 'react-chartjs-2';
+import { Chart, getElementAtEvent } from 'react-chartjs-2';
 
 import {
 	Title as TremorTitle,
@@ -28,7 +28,7 @@ import LineChartTab from './Chart';
 
 import { supabase } from '../supabaseClient';
 
-import { XIcon } from "@heroicons/react/outline";
+import { ArrowLeftIcon } from "@heroicons/react/outline";
 import SummaryCard from './Summary';
 
 ChartJS.register(
@@ -46,12 +46,7 @@ export default function TreeMap(props) {
 	const chartRef = useRef();
 	const [kewords, setKeywords] = useState([]);
 	const [isClicked, setIsClicked] = useState(false);
-
-	// 객체 TreeMap에 대한 필수 prop 정의. 
-	TreeMap.propTypes = {
-		color: PropTypes.string.isRequired,
-		title: PropTypes.string.isRequired,
-	}
+	const [clickedKeyword, setClickedKeyword] = useState("")
 
 	// useEffect로 함수 call. 
     useEffect(() => {
@@ -60,36 +55,48 @@ export default function TreeMap(props) {
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-        const { data } = await supabase.from("keyword").select("keywords").order('created_at', { ascending: false });
-		console.log(data[0].keywords);
-        setKeywords(data[0].keywords);
+        const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
+		console.log(data);
+        setKeywords(data);
     }
 
-	// TreeMap의 색상 설정 정의. 
+	TreeMap.propTypes = {
+		color: PropTypes.string.isRequired,
+		title: PropTypes.string.isRequired,
+	}
+
 	const config = {
 		type: 'treemap',
 		data: {
 			datasets: [
 				{
 					tree: kewords,
-					key: 'capacityMW',
+					key: props.color === "tomato" ? 'neg_cnt' : 'pos_cnt',
 					labels: {
 						display: true,
-						formatter: (context) => context.raw._data.name,
+						formatter: (context) => context.raw._data.keyword,
+						color: ['white', 'whiteSmoke'],
+						font: [{size: 36, weight: 'bold'}, {size: 12}],
 					},
 					backgroundColor(context) {
 						if (context.type !== 'data') return 'transparent';
-						const { dataCoverage } = context.raw._data;
-						return dataCoverage === 0
-							? color('grey').rgbString()
-							: color(props.color).alpha(dataCoverage).rgbString();
+						const { count, pos_cnt, neg_cnt } = context.raw._data;
+
+						if(props.color === "green")
+							return pos_cnt / count === 0
+								? color('grey').rgbString()
+								: color(props.color).alpha(pos_cnt / count).rgbString();
+
+						if(props.color === "tomato")
+							return neg_cnt / count === 0
+								? color('grey').rgbString()
+								: color(props.color).alpha(neg_cnt / count).rgbString();
 					},
 				},
 			],
 		},
 	};
 
-	// TreeMap의 표기 설정 정의. 
 	const options = {
 		plugins: {
 			title: {
@@ -98,20 +105,21 @@ export default function TreeMap(props) {
 			},
 			legend: {
 				display: false,
+				
 			},
 			tooltip: {
 				displayColors: false,
 				callbacks: {
 					title(items) {
-						return items[0].raw._data.name;
+						return items[0].raw._data.keyword;
 					},
 					label(item) {
 						const {
-							_data: { capacityMW, dataCoverage },
+							_data: { pos_cnt, neg_cnt },
 						} = item.raw;
 						return [
-							`Export capacity: ${capacityMW} MW`,
-							`Data Coverage: ${dataCoverage * 100}%`,
+							`긍정 사용 빈도: ${pos_cnt} 번`,
+							`부정 사용 빈도: ${neg_cnt} 번`,
 						];
 					},
 				},
@@ -124,15 +132,15 @@ export default function TreeMap(props) {
 		if(chartRef.current) {
 			console.log(event);
 			console.log(chartRef);
+			const clicked_text = getElementAtEvent(chartRef.current, event)[0].element.options.labels.formatter;
 
+			setClickedKeyword(clicked_text);
 			setIsClicked(true);
 		}
 	}
 
 	// Click event for Close button.
 	const onCloseClick = (event) => {
-		console.log(event);
-
 		setIsClicked(false);
 	}
 
@@ -147,19 +155,20 @@ export default function TreeMap(props) {
 			{isClicked && <div>
 				<Grid numItemsLg={6} className="gap-6 mt-6">
 					<Col numColSpanLg={4}>
-						<LineChartTab>
+						<LineChartTab ticker="005930">
 							<div className="h-96" />
 						</LineChartTab>
 					</Col>
 	
 					<Col numColSpanLg={2}>
-						<SummaryCard>
+						<SummaryCard keyword={clickedKeyword} isMain={false}>
 							<div className="h-96" />
 						</SummaryCard>
 					</Col>
 				</Grid>
 				<Divider />
-				<Button icon={XIcon} onClick={onCloseClick}>닫기</Button>
+
+				<Button icon={ArrowLeftIcon} onClick={onCloseClick}>뒤로가기</Button>
 			</div>}
 		</div>
 	);
