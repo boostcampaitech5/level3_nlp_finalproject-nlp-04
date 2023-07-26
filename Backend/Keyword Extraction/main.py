@@ -18,7 +18,6 @@ import pandas as pd
 
 sys.path.append(str(Path.home().joinpath("level3_nlp_finalproject-nlp-04")))
 from keyword_extractor.model import KeyBert
-from utils.secrets import Secrets
 
 app = FastAPI()
 tz = pendulum.timezone("Asia/Seoul")
