@@ -70,8 +70,8 @@ async def keywordExtraction(model_number: str, data_input: Item, parameter: Para
 
     model = get_model(model_number)
 
-    result = model.extract_keywords(data_input.titles,
-                                    data_input.contents,
+    result = model.extract_keywords(docs=data_input.contents,
+                                    titles=data_input.titles,
                                     stop_words = parameter.stop_words if parameter.stop_words else [],
                                     top_k = parameter.top_k,
                                     diversity = parameter.diversity,
