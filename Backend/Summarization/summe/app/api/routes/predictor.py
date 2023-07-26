@@ -29,6 +29,11 @@ def get_summerization(model_name: str, data_point: TextDataInput) -> Tuple:
         model = model_T5()
     elif model_name == "polyglot":
         model = model_polyglot()
+    elif model_name == "all":
+        _, context_t5 = get_summerization("t5", data_point)
+        _, context_poly = get_summerization("polyglot", data_point)
+
+        return [], [context_t5[0] + "\n\n" + context_poly[0]]
     
     return model.predict(data_point, load_wrapper=pipeline, method="predict")
 
@@ -55,7 +60,7 @@ def get_model_health(model_name: str) -> bool:
     "/summerize/{model_name}",
     response_model=SummerizedResponse,
     name="summerize news",
-    description="모델을 이용하여 기사를 요약하는 API 입니다. `model_name`에는 `t5`, `polyglot` 중 하나를 선택하시면 됩니다. \
+    description="모델을 이용하여 기사를 요약하는 API 입니다. `model_name`에는 `t5`, `polyglot` 혹은 모든 모델을 이용하는 `all` 중 하나를 선택하시면 됩니다. \
                 `num_split`은 t5 모델에서만 사용되며, `options`의 내용은 \
                 [link](https://huggingface.co/docs/transformers/v4.30.0/main_classes/text_generation#transformers.GenerationConfig)를 참조하시기 바랍니다. "
 )
@@ -75,8 +80,8 @@ async def summerize(model_name: str, data_input: TextDataInput) -> SummerizedRes
         SummerizedResponse: 모델에서 추출된 결과를 반환하는 함수. 
     """
 
-    if not model_name in ["t5", "polyglot"]:
-        raise HTTPException(status_code=404, detail="'model_name' argument invalid! Type model name. \n Model: t5, polyglot")
+    if not model_name in ["t5", "polyglot", "all"]:
+        raise HTTPException(status_code=404, detail="'model_name' argument invalid! Type model name. \n Model: t5, polyglot, all")
 
     if not data_input:
         raise HTTPException(status_code=404, detail="'data_input' argument invalid!")
