@@ -12,6 +12,7 @@ import {
 		Metric,
 } from "@tremor/react";
 
+import { PropTypes } from 'prop-types';
 import { useEffect, useState } from "react";
 import { startOfYear, subDays } from "date-fns";
 import { supabase } from "../supabaseClient";
@@ -22,20 +23,30 @@ const dataFormatter = (number) => `${Intl.NumberFormat("ko-KR", {
 	currency: 'KRW',
 }).format(number).toString()}`;
 
-export default function LineChartTab() {
+export default function LineChartTab(props) {
 	const [selectedIndex, setSelectedIndex] = useState("Max");
-	const [stockPrice, setStockPrice] = useState([{"id": 0, "ticker": "005930.KS", "price": 0, "date": "2021-04-05"}, {"id": 0, "ticker": "005930.KS", "price": 0, "date": "2021-04-05"}]);
+	const [stockPrice, setStockPrice] = useState([{"id": 0, "ticker": "005930", "price": 0, "date": "2021-04-05"}, {"id": 0, "ticker": "005930", "price": 0, "date": "2021-04-05"}]);
+	const [ticker_name, setTickerName] = useState("a");
 
 	// useEffect로 함수 call. 
 	useEffect(() => {
 		getInformations();
 	}, []);
 
+	LineChartTab.propTypes = {
+		ticker: PropTypes.string.isRequired,
+	}
 
 	// Supabase에서 데이터 가져오기. 
 	async function getInformations() {
-		const { data } = await supabase.from("price").select("*").eq("ticker", "005930.KS").order('date', { ascending: true });
+		// DB에서 ticker에 맞는 가격 데이터 가져오기. 
+		var { data } = await supabase.from("price").select("*").eq("ticker", props.ticker).order('date', { ascending: true });
 		setStockPrice(data);
+
+		// ticker에 맞는 주가 명 가져오기. 
+		data = await supabase.from("ticker").select("*").eq("ticker", props.ticker);
+		setTickerName(data.data[0].name);
+
 		getFilteredData(selectedIndex);
 	}
 
@@ -84,7 +95,7 @@ export default function LineChartTab() {
 	return (
 		<div>
 			<Flex>
-				<Title>삼성전자</Title>
+				<Title>{ticker_name}</Title>
 				<BadgeDelta deltaType="moderateDecrease" isIncreasePositive={true} size="xs">
 						{getDiffRatio(stockPrice[stockPrice.length - 1].price, stockPrice[stockPrice.length - 2].price).toFixed(2)}%
 				</BadgeDelta>

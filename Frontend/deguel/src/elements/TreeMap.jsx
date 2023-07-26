@@ -155,7 +155,7 @@ export default function TreeMap(props) {
 			{isClicked && <div>
 				<Grid numItemsLg={6} className="gap-6 mt-6">
 					<Col numColSpanLg={4}>
-						<LineChartTab>
+						<LineChartTab ticker="005930">
 							<div className="h-96" />
 						</LineChartTab>
 					</Col>
