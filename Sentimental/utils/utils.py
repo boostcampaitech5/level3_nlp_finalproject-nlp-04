@@ -91,6 +91,9 @@ def extract_label(json_str) :
     return data_dict["label"]
 
 def gpt_preprocessing_labels(data) :
+    if "label" not in data.columns :
+        data["label"] = data["labels"]
+        
     data = remove_idx_row(data)
     data["label"] = data["label"].apply(preprocessing_label)
     data["label"] = data["label"].apply(extract_label)
@@ -103,6 +106,9 @@ def gpt_preprocessing_labels(data) :
 
 
 def gpt_preprocessing_labels_token(data) :
+    if "label" not in data.columns :
+        data["label"] = data["labels"]
+        
     data = remove_idx_row(data)
     data["label"] = data["label"].apply(preprocessing_label)
     data["label"] = data["label"].apply(extract_label)

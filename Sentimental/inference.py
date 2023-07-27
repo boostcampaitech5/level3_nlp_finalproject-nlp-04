@@ -31,7 +31,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
 
 # 모델
 name = 'name'
-MODEL_NAME = f"/opt/ml/outputs/{name}"
+MODEL_NAME = "/opt/ml/level3_nlp_finalproject-nlp-04/Sentimental/outputs/klue/roberta-large_merged-4_100-26_50"
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2).to(device)
 tokenizer = AutoTokenizer.from_pretrained("klue/roberta-large")
 

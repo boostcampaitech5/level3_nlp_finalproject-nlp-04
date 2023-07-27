@@ -12,15 +12,16 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 app = FastAPI()
 
 MODEL_PATH = "/opt/ml/input/model-roberta_large-sota_trainer"
-tokenizer = AutoTokenizer.from_pretrained("klue/roberta-large")
+
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+tokenizer = AutoTokenizer.from_pretrained("klue/roberta-large")
+special_tokens_dict = {'additional_special_tokens': ['[COMPANY]','[/COMPANY]']}
+num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
+
+model.resize_token_embeddings(len(tokenizer))
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = model.to(device)
-
-@app.get("/")
-def hello_world():
-    return {"hello": "world"}
-
 
 def extract_sentences_token(input_dict, pad_token_id):
     '''
@@ -54,7 +55,7 @@ def extract_sentences_token(input_dict, pad_token_id):
             new['attention_mask'][i] = input_dict['attention_mask'][i][:512]
     return new
 
-def predict_sentiment(text: List[str]) -> List(str):
+def predict_sentiment(text: List[str]) -> List[str]:
     answer = []
     model.eval()
 
@@ -64,9 +65,8 @@ def predict_sentiment(text: List[str]) -> List(str):
             temp = tokenizer(
                 batch_text,
                 return_tensors='pt',
-                padding=True,
+                padding="max_length",
                 truncation=True,
-                ##
                 max_length=3000, # 충분히 커서 모두 토큰화할 길이
                 )
             temp = extract_sentences_token(temp, tokenizer.pad_token_id)
@@ -74,30 +74,31 @@ def predict_sentiment(text: List[str]) -> List(str):
                 temp = {key: value.to(device) for key, value in temp.items()}
             predicted_label = model(**temp)
 
-            results = []
             results = torch.nn.Softmax(dim=-1)(predicted_label.logits)
             for result in results :
                 if result[0]>=result[1] :
                     answer.append("부정")
                 else :
                     answer.append("긍정")
+                    
     return answer
     
 class FinanaceSentiment(BaseModel):
     corpus_list: list = []
-    title: str = "title"
-    company: str = "삼성전자"
-    result: Optional[List]
+    company_list: list = []
+    
 
 @app.post("/classify_sentiment", description="문장의 감정을 분류합니다.")
 async def classify_sentiment(finance: FinanaceSentiment):
     # 입력으로 받은 텍스트를 모델로 예측합니다.
-    predictions = predict_sentiment(finance.corpus_list)
+    input = []
+    for corpus, company in zip(finance.corpus_list, finance.company_list) :
+        input.append(f"이 기사는[COMPANY]{company}[/COMPANY]에 대한 기사야. {corpus}")
+        
+    predictions = predict_sentiment(input)
     
     # 결과를 반환합니다.
     result = {
-        "title": finance.title,
-        # "input_text": finance.corpus,
         "sentiment": predictions
     }
     
