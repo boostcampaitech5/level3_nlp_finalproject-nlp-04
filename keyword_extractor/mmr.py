@@ -38,23 +38,25 @@ def mmr(
 
 	assert 0 <= diversity <= 1, "Diversity should be between 0 and 1"
 
-	word_doc_sim = cosine_similarity(word_embedding, doc_embedding)
-	word_sim = cosine_similarity(word_embedding)
-
 	keywords = []
+	try:
+		word_doc_sim = cosine_similarity(word_embedding, doc_embedding)
+		word_sim = cosine_similarity(word_embedding)
+	except ValueError:
+		return keywords
 	keywords_idx = [np.argmax(word_doc_sim)]
 	candidate_idx = [i for i in range(len(words)) if i != keywords_idx[0]]
 
 	while len(keywords) < min(top_k, len(words)):
-		candidate_sim = word_doc_sim[candidate_idx, :]
-		target_sim = np.max(word_sim[candidate_idx][:, keywords_idx], axis=1)
-
-		mmr = (1-diversity) * candidate_sim - diversity * target_sim.reshape(-1, 1)
 		# 짧은 기사에서 candidate_idx가 모두 지워지는 경우 에러 처리
 		try:
+			candidate_sim = word_doc_sim[candidate_idx, :]
+			target_sim = np.max(word_sim[candidate_idx][:, keywords_idx], axis=1)
+
+			mmr = (1-diversity) * candidate_sim - diversity * target_sim.reshape(-1, 1)
+
 			mmr_idx = candidate_idx[np.argmax(mmr)]
 		except ValueError:
-			print("Raise ValueError: mmr_idx")
 			break
 
 		post_processed_keyword = post_processing(words[mmr_idx],
