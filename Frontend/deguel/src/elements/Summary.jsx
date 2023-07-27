@@ -63,11 +63,12 @@ export default function SummaryCard(props) {
         isMain: PropTypes.bool.isRequired,
 	}
 
-
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-        const { data } = await supabase.from("news").select("content").order('date', { ascending: false }).limit(1);
-        setNewsSummarized(data[0].content);
+        let { data } = await supabase.from("keywords").select("id").eq("keyword", props.keyword);
+        data = await supabase.from("news_summary").select("summarization").eq("id", data[0].id);
+        console.log(data);
+        setNewsSummarized(data.data[0].summarization);
     }
 
     // Click event for Close button.

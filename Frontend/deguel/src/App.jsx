@@ -49,7 +49,7 @@ export default function App() {
 			<Grid numItemsLg={2} className="gap-6 mt-6">
 				<Col numColSpanLg={1}>
 					<Card>
-						<SummaryCard isMain={true}>
+						<SummaryCard isMain={true} keyword="4나노">
 							<div className="h-96" />
 						</SummaryCard>
 					</Card>
@@ -57,7 +57,7 @@ export default function App() {
 
 				<Col numColSpanLg={1}>
 					<Card>
-						<SummaryCard isMain={true}>
+						<SummaryCard isMain={true} keyword="5나노">
 							<div className="h-96" />
 						</SummaryCard>
 					</Card>

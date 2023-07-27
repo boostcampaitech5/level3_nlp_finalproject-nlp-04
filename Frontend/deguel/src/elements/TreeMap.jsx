@@ -47,6 +47,7 @@ export default function TreeMap(props) {
 	const [kewords, setKeywords] = useState([]);
 	const [isClicked, setIsClicked] = useState(false);
 	const [clickedKeyword, setClickedKeyword] = useState("")
+	const [clickedTicker, setClickedTicker] = useState("")
 
 	// useEffect로 함수 call. 
     useEffect(() => {
@@ -128,11 +129,24 @@ export default function TreeMap(props) {
 	};
 
 	// Click event for TreeMap. 
-	const onDataClick = (event) => {
+	const onDataClick = async (event) => {
 		if(chartRef.current) {
 			console.log(event);
 			console.log(chartRef);
 			const clicked_text = getElementAtEvent(chartRef.current, event)[0].element.options.labels.formatter;
+
+			for(let keyword of kewords) {
+				if(keyword.keyword === clicked_text) {
+					const idx = keyword.summary_id.list_news[0];
+					
+					let { data } = await supabase.from("news_summary").select("origin_id").eq("id", idx);
+					data = await supabase.from("news").select("company").eq("id", data[0].origin_id);
+					data = await supabase.from("ticker").select("ticker").eq("name", data.data[0].company);
+
+					setClickedTicker(data.data[0].ticker);
+					break;
+				}
+			}
 
 			setClickedKeyword(clicked_text);
 			setIsClicked(true);
@@ -155,7 +169,7 @@ export default function TreeMap(props) {
 			{isClicked && <div>
 				<Grid numItemsLg={6} className="gap-6 mt-6">
 					<Col numColSpanLg={4}>
-						<LineChartTab ticker="005930">
+						<LineChartTab ticker={clickedTicker}>
 							<div className="h-96" />
 						</LineChartTab>
 					</Col>
