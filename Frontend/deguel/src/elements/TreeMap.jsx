@@ -181,7 +181,7 @@ export default function TreeMap(props) {
 	return (
 		<div>
 			{!isClicked && <div>
-				<Subtitle>{windowSize[0]} 분석된 {props.title} 예요. </Subtitle>
+				<Subtitle>분석된 {props.title} 예요. </Subtitle>
 				<TremorTitle>{props.title}</TremorTitle>
 				<Chart height={getTreeMapWidth(windowSize[0])} ref={chartRef} type="treemap" data={config.data} options={options} onClick={onDataClick}/>
 			</div>}
