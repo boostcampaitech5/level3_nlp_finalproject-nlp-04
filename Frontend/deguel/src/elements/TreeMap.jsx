@@ -54,6 +54,8 @@ export default function TreeMap(props) {
 		window.innerWidth,
 		window.innerHeight,
 	]);
+	const [neg_cntsum, setNeg_cntsum] = useState(0);
+	const [pos_cntsum, setPos_cntsum] = useState(0);
 
 	// useEffect로 함수 call. 
     useEffect(() => {
@@ -67,11 +69,35 @@ export default function TreeMap(props) {
 		return () => {
 			window.removeEventListener('resize', handleWindowResize);
 		};
-    }, []);
+    }, [neg_cntsum, pos_cntsum]);
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-        const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
+		// let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
+        // data = await supabase.from("keywords").select("*").eq("create_time", data[0].create_time).order('create_time', { ascending: false });
+		// data = data.data
+		const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
+		let neg = 0, pos = 0
+
+		for(let i = 0;i < data.length;i++) {
+			if(data[i].pos_cnt >= data[i].neg_cnt) {
+				data[i].ratio_pos = (data[i].pos_cnt - data[i].neg_cnt) * data[i].pos_cnt;
+				data[i].ratio_neg = 0;
+			}
+			if(data[i].pos_cnt <= data[i].neg_cnt) {
+				data[i].ratio_neg = (data[i].neg_cnt - data[i].pos_cnt) * data[i].neg_cnt;
+				data[i].ratio_pos = 0;
+			}
+			// data[i].ratio_pos = data[i].pos_cnt;
+			// data[i].ratio_neg = data[i].neg_cnt;
+			neg += data[i].neg_cnt;
+			pos += data[i].pos_cnt;
+		}
+		setNeg_cntsum(neg);
+		setPos_cntsum(pos);
+		console.log(data);
+		console.log("neg_cntsum: " + neg_cntsum);
+		console.log("pos_cntsum: " + pos_cntsum);
 
 		shuffle(data);
         setKeywords(data);
@@ -97,7 +123,7 @@ export default function TreeMap(props) {
 			datasets: [
 				{
 					tree: kewords,
-					key: props.color === "tomato" ? 'neg_cnt' : 'pos_cnt',
+					key: props.color === "tomato" ? 'ratio_neg' : 'ratio_pos',
 					labels: {
 						display: true,
 						formatter: (context) => context.raw._data.keyword,
@@ -106,17 +132,17 @@ export default function TreeMap(props) {
 					},
 					backgroundColor(context) {
 						if (context.type !== 'data') return 'transparent';
-						const { count, pos_cnt, neg_cnt } = context.raw._data;
+						const { count, pos_cnt, neg_cnt, ratio_neg, ratio_pos } = context.raw._data;
 
 						if(props.color === "green")
 							return pos_cnt / count === 0
 								? color('grey').rgbString()
-								: color(props.color).alpha(pos_cnt / count).rgbString();
+								: color(props.color).alpha((ratio_pos) / pos_cntsum * 30).rgbString();
 
 						if(props.color === "tomato")
 							return neg_cnt / count === 0
 								? color('grey').rgbString()
-								: color(props.color).alpha(neg_cnt / count).rgbString();
+								: color(props.color).alpha((ratio_neg) / neg_cntsum * 30).rgbString();
 					},
 				},
 			],
