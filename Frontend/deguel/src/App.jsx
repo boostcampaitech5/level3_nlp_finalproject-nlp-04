@@ -9,7 +9,6 @@ import {
 	TabPanel,
 	TabPanels,
 	Grid,
-	Col,
 	Card,
 } from "@tremor/react";
 import TreemMap from "./elements/TreeMap";
@@ -46,22 +45,28 @@ export default function App() {
 			<Title className="mt-6">사용자 추천 기사</Title>
 			<Text>많은 사용자가 본 뉴스에요. </Text>
 
-			<Grid numItemsLg={2} className="gap-6 mt-6">
-				<Col numColSpanLg={1}>
-					<Card>
-						<SummaryCard isMain={true} keyword="4나노">
-							<div className="h-96" />
-						</SummaryCard>
-					</Card>
-				</Col>
-
-				<Col numColSpanLg={1}>
-					<Card>
-						<SummaryCard isMain={true} keyword="5나노">
-							<div className="h-96" />
-						</SummaryCard>
-					</Card>
-				</Col>
+			<Grid className="mt-6 gap-6 grid-flow-row-dense xl:grid-cols-4 md:grid-cols-3">
+				<Card>
+					<SummaryCard isMain={true} keyword="4나노" />
+				</Card>
+				<Card>
+					<SummaryCard isMain={true} keyword="5나노" />
+				</Card>
+				<Card>
+					<SummaryCard isMain={true} keyword="6나노" />
+				</Card>
+				<Card>
+					<SummaryCard isMain={true} keyword="7나노" />
+				</Card>
+				<Card>
+					<SummaryCard isMain={true} keyword="8나노" />
+				</Card>
+				<Card>
+					<SummaryCard isMain={true} keyword="9나노" />
+				</Card>
+				<Card>
+					<SummaryCard isMain={true} keyword="10나노" />
+				</Card>
 			</Grid>
 		</main>
 	);
