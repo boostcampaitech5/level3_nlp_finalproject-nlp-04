@@ -7,43 +7,42 @@ import {
     Divider,
     Flex,
     BadgeDelta,
-    Button,
 } from "@tremor/react"
 import { supabase } from "../supabaseClient";
 
 import { PropTypes } from 'prop-types';
 
 const data = [
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "blue", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "blue", tooltip: "Operational" },
-    { color: "green", tooltip: "Operational" },
-    { color: "green", tooltip: "Operational" },
-    { color: "green", tooltip: "Downtime" },
-    { color: "blue", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Maintenance" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "gray", tooltip: "Operational" },
-    { color: "blue", tooltip: "Operational" },
-    { color: "green", tooltip: "Degraded" },
-    { color: "green", tooltip: "Operational" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
+    { color: "gray", tooltip: "언급 없음" },
 ];
 
 export default function SummaryCard(props) {
@@ -65,9 +64,9 @@ export default function SummaryCard(props) {
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-        let { data } = await supabase.from("keywords").select("id").eq("keyword", props.keyword);
-        data = await supabase.from("news_summary").select("summarization").eq("id", data[0].id);
-        console.log(data);
+        let { data } = await supabase.from("keywords").select("summary_id").eq("keyword", props.keyword);
+        data = await supabase.from("news_summary").select("summarization").eq("id", data[0].summary_id.list_news[0]);
+        
         setNewsSummarized(data.data[0].summarization);
     }
 
@@ -79,7 +78,7 @@ export default function SummaryCard(props) {
 
     return (
         <div>
-            <Subtitle>선택하신 키워드에 대한 주요 뉴스 요약본이에요!</Subtitle>
+            {!props.isMain && <Subtitle>선택하신 키워드에 대한 주요 뉴스 요약본이에요!</Subtitle>}
             <Title># {keyword}</Title>
             <Text>{newsSummarized}</Text>
             {!props.isMain &&
