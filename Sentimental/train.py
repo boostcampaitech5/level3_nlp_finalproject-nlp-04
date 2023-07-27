@@ -17,7 +17,7 @@ from metrics.metrics import compute_metrics
 from sklearn.datasets import load_iris # 샘플 데이터 로딩
 from sklearn.model_selection import train_test_split
 
-from utils.utils import config_seed, gpt_preprocessing_labels
+from utils.utils import config_seed, gpt_preprocessing_labels, extract_sentences_token, gpt_preprocessing_labels_token
 
 import json
 import re
@@ -28,7 +28,7 @@ import re
 def sweep_train(config=None) :
     # wandb
     run = wandb.init(config=wandb.config)
-    run.name = f"max_length: {wandb.config.max_length}"
+    # run.name = f"max_length: {wandb.config.max_length}"
 
     # 설정
     SEED = 42
@@ -48,7 +48,7 @@ def sweep_train(config=None) :
 
     # 데이터
     data = pd.read_csv("/opt/ml/finance_sentiment_corpus/merged/merged_all.csv")
-    data = gpt_preprocessing_labels(data) # gpt에서 출력한 오류들을 json 형식으로 맞춰주고 labels를 수정하는 것    
+    data = gpt_preprocessing_labels_token(data) # gpt에서 출력한 오류들을 json 형식으로 맞춰주고 labels를 수정하는 것    
     
     # "labels" 값을 추출하여 새로운 Series 생성
     dataset = train_test_split(data['content_corpus_company'], data['labels'],
@@ -69,9 +69,9 @@ def sweep_train(config=None) :
                                 truncation=True,
                                 ##
                                 max_length=max_length,
-                                stride=stride,
-                                return_overflowing_tokens=True,
-                                return_offsets_mapping=False
+                                # stride=stride,
+                                # return_overflowing_tokens=True,
+                                # return_offsets_mapping=False
                                 )
 
     val_encoding = tokenizer(sentence_val.tolist(),
@@ -80,10 +80,13 @@ def sweep_train(config=None) :
                             truncation=True,
                             ##
                             max_length=max_length,
-                            stride=stride,
-                            return_overflowing_tokens=True,
-                            return_offsets_mapping=False
+                            # stride=stride,
+                            # return_overflowing_tokens=True,
+                            # return_offsets_mapping=False
                             )
+    train_encoding = extract_sentences_token(train_encoding, tokenizer.pad_token_id)
+    val_encoding = extract_sentences_token(val_encoding, tokenizer.pad_token_id)
+    #앞 128, 뒷 384 토큰으로 센텐스를 추출합니다.
 
     train_set = SentimentalDataset(train_encoding, label_train.reset_index(drop=True))
     val_set = SentimentalDataset(val_encoding, label_val.reset_index(drop=True))
@@ -126,7 +129,7 @@ if __name__ == '__main__':
         'method': 'grid',
         'parameters':
         {
-            'max_length': {'values' : [500, 250]},
+            'max_length': {'values' : [3000]}, # 충분히 커서 본문 전체를 토크나이징.
         }
     }
     sweep_id = wandb.sweep(sweep=wandb_config,
