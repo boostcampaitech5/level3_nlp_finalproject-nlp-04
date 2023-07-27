@@ -47,6 +47,8 @@ function shuffle(array) {
 }
 
 export default function TreeMap(props) {
+	const midnight = new Date();
+	midnight.setDate(midnight.getDate() - 1);
 	const chartRef = useRef();
 	const [kewords, setKeywords] = useState([]);
 	const [isClicked, setIsClicked] = useState(false);
@@ -59,10 +61,10 @@ export default function TreeMap(props) {
 	]);
 	const [neg_cntsum, setNeg_cntsum] = useState(0);
 	const [pos_cntsum, setPos_cntsum] = useState(0);
-	// const [dateRange, setDateRange] = useState({
-	// 	from: new Date(),
-	// 	to: new Date(),
-	// });
+	const [dateRange, setDateRange] = useState({
+		from: midnight,
+		to: new Date(),
+	});
 
 	// useEffect로 함수 call. 
     useEffect(() => {
@@ -76,17 +78,19 @@ export default function TreeMap(props) {
 		return () => {
 			window.removeEventListener('resize', handleWindowResize);
 		};
-    }, [neg_cntsum, pos_cntsum]);
+    }, [neg_cntsum, pos_cntsum, dateRange]);
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-		const midnight = new Date();
-		midnight.setDate(midnight.getDate() - 1);
 		let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
         // data = await supabase.from("keywords").select("*").eq("create_time", data[0].create_time).order('create_time', { ascending: false });
+		// data = await supabase.from("keywords").select("*")
+		// 			.gte("create_time", midnight.toISOString())
+		// 			.lte("create_time", new Date().toISOString())
+		// 			.order('create_time', { ascending: false });
 		data = await supabase.from("keywords").select("*")
-					.gte("create_time", midnight.toISOString())
-					.lte("create_time", new Date().toISOString())
+					.gte("create_time", dateRange.from.toISOString())
+					.lte("create_time", dateRange.to.toISOString())
 					.order('create_time', { ascending: false });
 		data = data.data
 
@@ -282,6 +286,15 @@ export default function TreeMap(props) {
 	return (
 		<div>
 			{!isClicked && <div>
+				<DateRangePicker
+					className="max-w-md mx-auto"
+					value={dateRange}
+					onValueChange={setDateRange}
+					locale={ko}
+					selectPlaceholder="날짜 선택"
+					color="rose"
+					>
+				</DateRangePicker>
 				<Subtitle>{updatedTime}에 분석된 {props.title} 예요. </Subtitle>
 				<Chart height={getTreeMapWidth(windowSize[0])} ref={chartRef} 
 						type="treemap" data={config.data} options={options} 
