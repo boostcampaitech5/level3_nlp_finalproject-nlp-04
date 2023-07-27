@@ -46,12 +46,25 @@ export default function TreeMap(props) {
 	const chartRef = useRef();
 	const [kewords, setKeywords] = useState([]);
 	const [isClicked, setIsClicked] = useState(false);
-	const [clickedKeyword, setClickedKeyword] = useState("")
-	const [clickedTicker, setClickedTicker] = useState("")
+	const [clickedKeyword, setClickedKeyword] = useState("");
+	const [clickedTicker, setClickedTicker] = useState("");
+	const [windowSize, setWindowSize] = useState([
+		window.innerWidth,
+		window.innerHeight,
+	]);
 
 	// useEffect로 함수 call. 
     useEffect(() => {
         getInformations();
+
+		const handleWindowResize = () => {
+			setWindowSize([window.innerWidth, window.innerHeight]);
+		};
+
+		window.addEventListener('resize', handleWindowResize);
+		return () => {
+			window.removeEventListener('resize', handleWindowResize);
+		};
     }, []);
 
     // Supabase에서 데이터 가져오기. 
@@ -158,12 +171,23 @@ export default function TreeMap(props) {
 		setIsClicked(false);
 	}
 
+
+	const getTreeMapWidth = (width) => {
+		if(width > 1024) {
+			return 200;
+		} else if (width > 720) {
+			return 800;
+		} else {
+			return 1000;
+		}
+	}
+
 	return (
 		<div>
 			{!isClicked && <div>
-				<Subtitle>분석된 {props.title} 예요. </Subtitle>
+				<Subtitle>{windowSize[0]} 분석된 {props.title} 예요. </Subtitle>
 				<TremorTitle>{props.title}</TremorTitle>
-				<Chart ref={chartRef} type="treemap" data={config.data} options={options} onClick={onDataClick}/>
+				<Chart height={getTreeMapWidth(windowSize[0])} ref={chartRef} type="treemap" data={config.data} options={options} onClick={onDataClick}/>
 			</div>}
 
 			{isClicked && <div>
