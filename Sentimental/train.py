@@ -123,6 +123,8 @@ def sweep_train(config=None) :
     trainer.train()
     # wandb.finish()
 
+    name = 'name'
+    trainer.save_model(output_dir=f'./outputs/{name}')
 
 if __name__ == '__main__':
     wandb_config = {
