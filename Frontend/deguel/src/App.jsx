@@ -2,24 +2,22 @@
 
 import {
 	Title,
-	Text,
 	Tab,
 	TabList,
 	TabGroup,
 	TabPanel,
 	TabPanels,
-	Grid,
-	Card,
+	Metric,
 } from "@tremor/react";
+
 import TreemMap from "./elements/TreeMap";
-import SummaryCard from "./elements/Summary";
 
 export default function App() {
 
 	return (
 		<main className="px-12 py-12 2xl:mx-32">
-			<Title>Deguel</Title>
-			<Text>현재, 언론사에서 가장 많이 다루고 있는 키워드 입니다. </Text>
+			<Metric>Deguel</Metric>
+			<Title>현재, 언론사에서 가장 많이 다루고 있는 키워드 입니다. </Title>
 
 			<TabGroup className="mt-6">
 				<TabList>
@@ -42,7 +40,7 @@ export default function App() {
 				</TabPanels>
 			</TabGroup>
 
-			<Title className="mt-6">사용자 추천 기사</Title>
+			{/*<Title className="mt-6">사용자 추천 기사</Title>
 			<Text>많은 사용자가 본 뉴스에요. </Text>
 
 			<Grid className="mt-6 gap-6 grid-flow-row-dense xl:grid-cols-4 md:grid-cols-3">
@@ -67,7 +65,7 @@ export default function App() {
 				<Card>
 					<SummaryCard isMain={true} keyword="10나노" />
 				</Card>
-			</Grid>
+			</Grid>*/}
 		</main>
 	);
 }

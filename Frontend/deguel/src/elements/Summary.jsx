@@ -49,9 +49,7 @@ export default function SummaryCard(props) {
     const [newsSummarized, setNewsSummarized] = useState("")
     const [keyword, setKeyword] = useState(props.keyword)
     const [dataTracker, setDataTracker] = useState(data_tracker)
-
-    // useEffect로
-    // const [newsKeywordList, setnewsKeywordList] = useState([])
+    const [href, setHref] = useState("")
 
     // useEffect로 함수 call. 
     useEffect(() => {
@@ -60,6 +58,7 @@ export default function SummaryCard(props) {
 
     SummaryCard.propTypes = {
 		keyword: PropTypes.string.isRequired,
+        color: PropTypes.string.isRequired,
         isMain: PropTypes.bool.isRequired,
 	}
 
@@ -72,9 +71,11 @@ export default function SummaryCard(props) {
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
+        console.log("keyword :" + props.keyword);
         let { data } = await supabase.from("keywords").select("summary_id").eq("keyword", props.keyword);
+        const id = props.color === "green" ? data[0].summary_id.pos_news[0] : data[0].summary_id.neg_news[0];
 
-        data = await supabase.from("news_summary").select("summarization").eq("id", data[0].summary_id.list_news[0]);
+        data = await supabase.from("news_summary").select("summarization").eq("origin_id", id);
         setNewsSummarized(data.data[0].summarization);
 
         data = await supabase.from("keywords").select("create_time").eq("keyword", props.keyword);
@@ -99,6 +100,8 @@ export default function SummaryCard(props) {
                 newDataTracker[index].color = "gray";
             }
         }
+        data = await supabase.from("news").select("link").eq("id", id);
+        setHref(data.data[0].link);
 
         setDataTracker(newDataTracker);
     }
@@ -113,7 +116,7 @@ export default function SummaryCard(props) {
         <div>
             {!props.isMain && <Subtitle>선택하신 키워드에 대한 주요 뉴스 요약본이에요!</Subtitle>}
             <Title># {keyword}</Title>
-            <Text>{newsSummarized}</Text>
+            <a href={href} target="_blank" rel="noreferrer"><Text color="black">{newsSummarized}</Text></a>
             {!props.isMain &&
                 <div>
                     <Divider />

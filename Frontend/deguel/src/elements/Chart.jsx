@@ -126,6 +126,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -138,6 +139,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -150,6 +152,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -162,6 +165,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -174,6 +178,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 				</TabPanels>

@@ -42,12 +42,17 @@ ChartJS.register(
 	TreemapElement
 );
 
+function shuffle(array) {
+	array.sort(() => Math.random() - 0.5);
+}
+
 export default function TreeMap(props) {
 	const chartRef = useRef();
 	const [kewords, setKeywords] = useState([]);
 	const [isClicked, setIsClicked] = useState(false);
 	const [clickedKeyword, setClickedKeyword] = useState("");
 	const [clickedTicker, setClickedTicker] = useState("");
+	const [updatedTime, setUpdatedTime] = useState("");
 	const [windowSize, setWindowSize] = useState([
 		window.innerWidth,
 		window.innerHeight,
@@ -70,7 +75,16 @@ export default function TreeMap(props) {
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
         const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
+
+		shuffle(data);
         setKeywords(data);
+
+		var time_formated = data[0].create_time.replace("T", " ").split("+")[0].split(":")[0]
+		time_formated = time_formated.split("-")[0] + "년 " + 
+						time_formated.split("-")[1] + "월 " + 
+						time_formated.split("-")[2].split(" ")[0] + "일 " + 
+						time_formated.split("-")[2].split(" ")[1] + "시"
+		setUpdatedTime(time_formated);
     }
 
 	TreeMap.propTypes = {
@@ -89,7 +103,7 @@ export default function TreeMap(props) {
 						display: true,
 						formatter: (context) => context.raw._data.keyword,
 						color: ['white', 'whiteSmoke'],
-						font: [{size: 36, weight: 'bold'}, {size: 12}],
+						font: [{size: 20, weight: 'bold'}, {size: 12}],
 					},
 					backgroundColor(context) {
 						if (context.type !== 'data') return 'transparent';
@@ -114,7 +128,7 @@ export default function TreeMap(props) {
 		plugins: {
 			title: {
 				display: true,
-				text: '분석된 키워드',
+				text: '키워드를 클릭 해보세요!',
 			},
 			legend: {
 				display: false,
@@ -147,9 +161,9 @@ export default function TreeMap(props) {
 
 			for(let keyword of kewords) {
 				if(keyword.keyword === clicked_text) {
-					const idx = keyword.summary_id.list_news[0];
-					
-					let { data } = await supabase.from("news_summary").select("origin_id").eq("id", idx);
+					const idx = props.color === "green" ? keyword.summary_id.pos_news[0] : keyword.summary_id.neg_news[0];
+
+					let { data } = await supabase.from("news_summary").select("origin_id").eq("origin_id", idx);
 					data = await supabase.from("news").select("company").eq("id", data[0].origin_id);
 					data = await supabase.from("ticker").select("ticker").eq("name", data.data[0].company);
 
@@ -181,21 +195,22 @@ export default function TreeMap(props) {
 	return (
 		<div>
 			{!isClicked && <div>
-				<Subtitle>분석된 {props.title} 예요. </Subtitle>
-				<TremorTitle>{props.title}</TremorTitle>
-				<Chart height={getTreeMapWidth(windowSize[0])} ref={chartRef} type="treemap" data={config.data} options={options} onClick={onDataClick}/>
+				<Subtitle>{updatedTime}에 분석된 {props.title} 예요. </Subtitle>
+				<Chart height={getTreeMapWidth(windowSize[0])} ref={chartRef} 
+						type="treemap" data={config.data} options={options} 
+						onClick={onDataClick}/>
 			</div>}
 
 			{isClicked && <div>
-				<Grid numItemsLg={6} className="gap-6 mt-6">
-					<Col numColSpanLg={4}>
+				<Grid numItemsLg={7} className="gap-6 mt-6">
+					<Col numColSpanLg={5}>
 						<LineChartTab ticker={clickedTicker}>
 							<div className="h-96" />
 						</LineChartTab>
 					</Col>
 	
 					<Col numColSpanLg={2}>
-						<SummaryCard keyword={clickedKeyword} isMain={false}>
+						<SummaryCard keyword={clickedKeyword} isMain={false} color={props.color}>
 							<div className="h-96" />
 						</SummaryCard>
 					</Col>
