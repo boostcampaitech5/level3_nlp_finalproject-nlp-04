@@ -80,11 +80,17 @@ export default function TreeMap(props) {
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-		// let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
+		var midnight = new Date();
+		midnight.setHours(0,0,0,0);
+		let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
         // data = await supabase.from("keywords").select("*").eq("create_time", data[0].create_time).order('create_time', { ascending: false });
-		// data = data.data
+		data = await supabase.from("keywords").select("*")
+					.gte("create_time", midnight.toISOString())
+					.lte("create_time", new Date().toISOString())
+					.order('create_time', { ascending: false });
+		data = data.data
 		
-		const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
+		// const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
 		let neg = 0, pos = 0
 
 		for(let i = 0;i < data.length;i++) {
