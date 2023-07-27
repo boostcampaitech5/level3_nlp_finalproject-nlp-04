@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 from typing import List, Union, Tuple
 
@@ -10,6 +11,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from keyword_extractor.mmr import mmr
 from keyword_extractor.maxsum import max_sum_sim
+
+import torch
 
 class KeyBert:
 	"""Keyword Extractor using Sentence-BERT
@@ -127,3 +130,86 @@ class KeyBert:
 			all_keywords.append(keywords)
 
 		return all_keywords
+
+class KeyExtract:
+    def __init__(self, model_name="snunlp/KR-SBERT-V40K-klueNLI-augSTS"):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = SentenceTransformer(model_name).to(self.device)
+        self.okt = Okt()
+
+    def get_words(self, text, stopwords = []):
+        words = []
+        for word in self.okt.phrases(text):
+            if len(word.split()) == 1:
+                if stopwords and (word in stopwords):
+                    continue
+                words.append(word)
+        return words
+        
+    def extract_keywords(self,
+                         docs: Union[str, List[str]],
+                         titles: Union[str, List[str]] = None,
+                         keyphrase_ngram_range=(1, 1),
+                         stop_words=[],
+                         top_k:int=5,
+                         diversity=0.7,
+                         min_df=1,
+                         candidate_frac=0.3,
+                         vectorizer_type="tfidf",
+                         tag_type="mecab",
+                         max_count:int = 5,
+                         ):
+
+        if isinstance(docs, str):
+            if docs:
+                docs = [docs]
+            else:
+                return []
+                
+        if isinstance(titles, str):
+            if titles:
+                titles = [titles]
+            else:
+                return []
+                
+        if isinstance(stop_words, str):
+            if stop_words:
+                stop_words = [stop_words]
+            else:
+                stop_words = []
+                
+        all_keywords = []
+        for i in range(len(docs)):
+            if titles:
+                doc = titles[i] + docs[i]
+            else:
+                doc = docs[i]
+            #키워드 후보 가져오기 가져오기
+            words = self.get_words(doc, stop_words)
+            
+            #코사인 유사도
+            doc_emb = self.model.encode(doc, device=self.device)
+            word_emb = self.model.encode(words, device=self.device)
+            
+            text_word_cos = cosine_similarity([doc_emb], word_emb).flatten()
+            
+            #빈도수 점수
+            word_counts = {word: doc.count(word) for word in words}
+            frequency_score = []
+            for count in word_counts.values():
+                n = count if count < max_count else max_count
+                frequency_score.append(math.log(n + 1, 100))
+            frequency_score = np.array(frequency_score)
+
+            #score 계산
+            keywords = []
+            score = text_word_cos * frequency_score
+            for i in np.argsort(-score):
+                keywords.append((words[i], score[i]))
+            if top_k:
+                keywords = [(word, score) for word, score in keywords][:top_k]
+            else:
+                keywords = [(word, score) for word, score in keywords]
+            all_keywords.append(keywords)
+        return all_keywords
+        
