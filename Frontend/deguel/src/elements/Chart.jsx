@@ -24,7 +24,7 @@ const dataFormatter = (number) => `${Intl.NumberFormat("ko-KR", {
 }).format(number).toString()}`;
 
 export default function LineChartTab(props) {
-	const [selectedIndex, setSelectedIndex] = useState("Max");
+	const [selectedIndex, setSelectedIndex] = useState("4");
 	const [stockPrice, setStockPrice] = useState([{"id": 0, "ticker": "005930", "price": 0, "date": "2021-04-05"}, {"id": 0, "ticker": "005930", "price": 0, "date": "2021-04-05"}]);
 	const [ticker_name, setTickerName] = useState("a");
 
