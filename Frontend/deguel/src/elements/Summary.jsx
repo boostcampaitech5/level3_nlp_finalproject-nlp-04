@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
     Title,
     Subtitle,
@@ -8,9 +7,11 @@ import {
     Flex,
     BadgeDelta,
 } from "@tremor/react"
-import { supabase } from "../supabaseClient";
 
 import { PropTypes } from 'prop-types';
+import { useEffect, useState } from "react";
+
+import { supabase } from "../supabaseClient";
 
 const data_tracker = [
     { color: "gray", tooltip: "언급 없음" },
@@ -56,12 +57,14 @@ export default function SummaryCard(props) {
         getInformations();
     }, []);
 
+    // SummaryCard의 props 설정. 
     SummaryCard.propTypes = {
 		keyword: PropTypes.string.isRequired,
         color: PropTypes.string.isRequired,
         isMain: PropTypes.bool.isRequired,
 	}
 
+    // start와 end 사이의 날짜 list 반환 함수. 
     const getDateList = (start, end) => {
         for(var arr=[],dt=new Date(start); dt<=new Date(end); dt.setDate(dt.getDate()+1)){
             arr.push(new Date(dt));
@@ -85,6 +88,7 @@ export default function SummaryCard(props) {
 
         const newDataTracker = JSON.parse(JSON.stringify(data_tracker));
 
+        // activation graph 적용. 
         for(const [index, item] of newDataTracker.entries()){
             const year = list_date[index].getFullYear();
             const month = String(list_date[index].getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1을 해주고, 두 자리 숫자로 포맷팅

@@ -1,4 +1,16 @@
 import {
+	Subtitle,
+	Button,
+	Divider,
+	Grid,
+	Col,
+} from "@tremor/react";
+import { ArrowLeftIcon } from "@heroicons/react/outline";
+
+import { PropTypes } from 'prop-types';
+import { useEffect, useRef, useState } from 'react';
+
+import {
 	Chart as ChartJS,
 	CategoryScale,
 	LinearScale,
@@ -9,26 +21,11 @@ import {
 } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 import { Chart, getElementAtEvent } from 'react-chartjs-2';
-
-import {
-	Title as TremorTitle,
-	Subtitle,
-	Button,
-	Divider,
-	Grid,
-	Col,
-} from "@tremor/react";
-
-
 import { color } from 'chart.js/helpers';
-import { PropTypes } from 'prop-types';
-import { useEffect, useRef, useState } from 'react';
-
-import LineChartTab from './Chart';
 
 import { supabase } from '../supabaseClient';
 
-import { ArrowLeftIcon } from "@heroicons/react/outline";
+import LineChartTab from './Chart';
 import SummaryCard from './Summary';
 
 ChartJS.register(
@@ -87,11 +84,13 @@ export default function TreeMap(props) {
 		setUpdatedTime(time_formated);
     }
 
+	// TreeMap의 prop 설정. 
 	TreeMap.propTypes = {
 		color: PropTypes.string.isRequired,
 		title: PropTypes.string.isRequired,
 	}
 
+	// TreeMap의 디자인 설정. 
 	const config = {
 		type: 'treemap',
 		data: {
@@ -124,6 +123,7 @@ export default function TreeMap(props) {
 		},
 	};
 
+	// TreeMap의 Tooltip 세부 설정. 
 	const options = {
 		plugins: {
 			title: {
@@ -182,6 +182,7 @@ export default function TreeMap(props) {
 		setIsClicked(false);
 	}
 
+	// Get the width of TreeMap.
 	const getTreeMapWidth = (width) => {
 		if(width > 1024) {
 			return 200;

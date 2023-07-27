@@ -14,14 +14,18 @@ import {
 
 import { PropTypes } from 'prop-types';
 import { useEffect, useState } from "react";
-import { startOfYear, subDays } from "date-fns";
+
 import { supabase } from "../supabaseClient";
+
+import { startOfYear, subDays } from "date-fns";
+
 
 // 원화 표기를 위한 함수. 
 const dataFormatter = (number) => `${Intl.NumberFormat("ko-KR", {
 	style: 'currency',
 	currency: 'KRW',
 }).format(number).toString()}`;
+
 
 export default function LineChartTab(props) {
 	const [selectedIndex, setSelectedIndex] = useState("4");
@@ -33,6 +37,7 @@ export default function LineChartTab(props) {
 		getInformations();
 	}, []);
 
+	// LineChartTab의 prop 값 설정. 
 	LineChartTab.propTypes = {
 		ticker: PropTypes.string.isRequired,
 	}
