@@ -51,8 +51,8 @@ def sweep_train(config=None) :
     data = gpt_preprocessing_labels_token(data) # gpt에서 출력한 오류들을 json 형식으로 맞춰주고 labels를 수정하는 것    
     
     # "labels" 값을 추출하여 새로운 Series 생성
-    dataset = train_test_split(data['content_corpus_company'], data['labels'],
-                            test_size=0.2, shuffle=True, stratify=data['labels'], # label에 비율을 맞춰서 분리
+    dataset = train_test_split(data['content_corpus_company'], data['label'],
+                            test_size=0.2, shuffle=True, stratify=data['label'], # label에 비율을 맞춰서 분리
                             random_state=SEED)
 
 

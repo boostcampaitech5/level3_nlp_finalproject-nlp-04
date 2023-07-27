@@ -16,12 +16,12 @@ def remove_idx_row(data) :
     patterns = [r'idx\s*:?\s*.+?', r'라벨링\s*:?\s*.+?']
     
     for pattern in patterns :
-        mask = data['labels'].str.match(pattern)
+        mask = data["label"].str.match(pattern)
         data = data.drop(data[mask].index)
 
     return data
 
-# ['labels'] 전처리
+# ['label'] 전처리
 def preprocessing_label(json_str) :
     json_str = re.sub(r"^.*### 출력\s?:?\s?\n?\s?", "", str(json_str))
     # json_str= json_str.replace("\"", "'")
@@ -92,23 +92,23 @@ def extract_label(json_str) :
 
 def gpt_preprocessing_labels(data) :
     data = remove_idx_row(data)
-    data["labels"] = data["labels"].apply(preprocessing_label)
-    data['labels'] = data["labels"].apply(extract_label)
-    data['content_corpus_company'] = data.apply(lambda row: '이 기사는 [COMPANY]'+ str(row["company"]) +'[/COMPANY]에 대한 기사. [SEP]'+ extract_sentences(row['title']) + ' ' + extract_sentences(row['content_corpus']), axis=1) #TODO: 학습에 들어가는 부분이기 때문에 조정 필수
-    data['labels'] = data['labels'].map({'부정':0, '긍정':1})
-    data = data[["title", "date", "content_corpus", "labels", "content_corpus_company"]]
-    data = data[data['labels'].notna()] # 최후에 처리 되지 않은 None row 제거
+    data["label"] = data["label"].apply(preprocessing_label)
+    data["label"] = data["label"].apply(extract_label)
+    data["content_corpus_company"] = data.apply(lambda row: '이 기사는 [COMPANY]'+ str(row["company"]) +'[/COMPANY]에 대한 기사. [SEP]'+ extract_sentences(row["title"]) + ' ' + extract_sentences(row["content_corpus"]), axis=1) #TODO: 학습에 들어가는 부분이기 때문에 조정 필수
+    data["label"] = data["label"].map({"부정":0, "긍정":1})
+    data = data[["title", "date", "content_corpus", "label", "content_corpus_company"]]
+    data = data[data["label"].notna()] # 최후에 처리 되지 않은 None row 제거
     
     return data
 
 
 def gpt_preprocessing_labels_token(data) :
     data = remove_idx_row(data)
-    data["labels"] = data["labels"].apply(preprocessing_label)
-    data['labels'] = data["labels"].apply(extract_label)
-    data['content_corpus_company'] = data.apply(lambda row: '이 기사는 [COMPANY]'+ str(row["company"]) +'[/COMPANY]에 대한 기사. [SEP]'+ (row['content_corpus']), axis=1) #TODO: 학습에 들어가는 부분이기 때문에 조정 필수
-    data['labels'] = data['labels'].map({'부정':0, '긍정':1})
-    data = data[["title", "date", "content_corpus", "labels", "content_corpus_company"]]
-    data = data[data['labels'].notna()] # 최후에 처리 되지 않은 None row 제거
+    data["label"] = data["label"].apply(preprocessing_label)
+    data["label"] = data["label"].apply(extract_label)
+    data["content_corpus_company"] = data.apply(lambda row: '이 기사는 [COMPANY]'+ str(row["company"]) +'[/COMPANY]에 대한 기사. [SEP]'+ (row['content_corpus']), axis=1) #TODO: 학습에 들어가는 부분이기 때문에 조정 필수
+    data["label"] = data["label"].map({'부정':0, '긍정':1})
+    data = data[["title", "date", "content_corpus", "label", "content_corpus_company"]]
+    data = data[data["label"].notna()] # 최후에 처리 되지 않은 None row 제거
     
     return data
