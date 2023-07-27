@@ -17,7 +17,7 @@ import pandas as pd
 
 
 sys.path.append(str(Path.home().joinpath("level3_nlp_finalproject-nlp-04")))
-from keyword_extractor.model import KeyBert, KeyExtract
+from keyword_extractor.model import KeyBert, KeyExtract, MultiModel
 
 app = FastAPI()
 tz = pendulum.timezone("Asia/Seoul")
@@ -52,17 +52,20 @@ def get_model(model_number):
         model = KeyBert("sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
     elif model_number == "4":
         model = KeyExtract()
+    elif model_number == "5":
+        model = MultiModel()
+
     return model
 
 
 @app.post(
     "/keywordExtraction/{model_number}",
     name="keyword extraction",
-    description="뉴스 기사에서 키워드를 추출하는 요약하는 API 입니다. `model_number`에는 `1`, `2`, `3`, `4` 중 하나를 선택하시면 됩니다.\
-        기본 모델 목록 KeyBert 응용 (1:sroberta, 2:SBERT, 3:paraphrase-multilingual), 4: 자체 모델"
+    description="뉴스 기사에서 키워드를 추출하는 요약하는 API 입니다. `model_number`에는 `1`, `2`, `3`, `4` , `5` 중 하나를 선택하시면 됩니다.\
+        기본 모델 목록 KeyBert 응용 (1:sroberta, 2:SBERT, 3:paraphrase-multilingual), 4: 자체 모델, 5: 멀티 모델"
 )
 async def keywordExtraction(model_number: str, data_input: Item, parameter: Parameter = Depends()):
-    if not model_number in ["1", "2","3", "4"]:
+    if not model_number in ["1", "2","3", "4", "5"]:
         raise HTTPException(status_code=404, detail="'model_number' argument invalid! Type model name. \n Model: 1, 2, 3, 4")
 
     if not data_input:

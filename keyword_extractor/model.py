@@ -1,6 +1,8 @@
 import numpy as np
 import math
+import time
 
+from collections import defaultdict
 from typing import List, Union, Tuple
 
 from konlpy.tag import Mecab, Okt
@@ -14,6 +16,14 @@ from keyword_extractor.maxsum import max_sum_sim
 
 import torch
 
+def time_trace(func):
+	def wrapper(*args, **kwargs):
+		start_time = time.time()
+		result = func(*args, **kwargs)
+		end_time = time.time()
+		print("WorkingTime[{}]: {} sec".format(func.__name__, end_time - start_time))
+		return result
+	return wrapper
 class KeyBert:
 	"""Keyword Extractor using Sentence-BERT
 
@@ -21,13 +31,15 @@ class KeyBert:
 	Attributes:
 		model: Sentence-BERT model
 	"""
-	def __init__(self, model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2") -> None:
+	def __init__(self,
+				 model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+				 device="cpu") -> None:
 		"""Initialize Sentence-BERT Model Object
 
 		Args:
 			model_name: Sentence-BERT model name in HuggingFace
 		"""
-		self.model = SentenceTransformer(model_name)
+		self.model = SentenceTransformer(model_name).to(device)
 
 	def extract_keywords(self,
 						 docs: Union[str, List[str]],
@@ -103,8 +115,8 @@ class KeyBert:
 		words = vectorizer.get_feature_names_out()  # Vocab이 뽑힘
 		df = vectorizer.transform(docs)
 
-		doc_embs = self.model.encode(docs)
-		word_embs = self.model.encode(words)
+		doc_embs = self.model.encode(docs, device=self.model.device)
+		word_embs = self.model.encode(words, device=self.model.device)
 
 		all_keywords = []
 
@@ -212,4 +224,82 @@ class KeyExtract:
                 keywords = [(word, score) for word, score in keywords]
             all_keywords.append(keywords)
         return all_keywords
-        
+
+
+class MultiModel:
+
+	def __init__(self,
+				 device="cpu"
+				 ):
+		self.model1 = KeyBert("jhgan/ko-sroberta-multitask", device=device)
+		self.model2 = KeyBert("jhgan/ko-sroberta-nli", device=device)
+		self.model3 = KeyBert("snunlp/KR-SBERT-V40K-klueNLI-augSTS", device=device)
+		self.model4 = KeyBert("sentence-transformers/xlm-r-100langs-bert-base-nli-stsb-mean-tokens", device=device)
+
+	@time_trace
+	def extract_keywords(self,
+						 docs: Union[str, List[str]],
+						 titles: Union[str, List[str]] = None,
+						 keyphrase_ngram_range: Tuple[int, int] = (1, 1),
+						 stop_words: Union[str, List[str]] = [],
+						 top_k: int = 5,
+						 diversity: float = 0.7,
+						 min_df: int = 1,
+						 candidate_frac: float = 0.3,
+						 vectorizer_type: str = "tfidf",
+						 tag_type: str = "mecab",
+						 ):
+
+		keyword_1 = self.model1.extract_keywords(docs=docs,
+												 titles=titles,
+												 keyphrase_ngram_range=keyphrase_ngram_range,
+												 diversity=diversity,
+												 candidate_frac=candidate_frac,
+												 stop_words=stop_words,
+												 top_k=top_k,
+												 min_df=min_df,
+												 tag_type=tag_type,
+												 vectorizer_type=vectorizer_type)
+		keyword_2 = self.model2.extract_keywords(docs=docs,
+												 titles=titles,
+												 keyphrase_ngram_range=keyphrase_ngram_range,
+												 diversity=diversity,
+												 candidate_frac=candidate_frac,
+												 stop_words=stop_words,
+												 top_k=top_k,
+												 min_df=min_df,
+												 tag_type=tag_type,
+												 vectorizer_type=vectorizer_type)
+		keyword_3 = self.model3.extract_keywords(docs=docs,
+												 titles=titles,
+												 keyphrase_ngram_range=keyphrase_ngram_range,
+												 diversity=diversity,
+												 candidate_frac=candidate_frac,
+												 stop_words=stop_words,
+												 top_k=top_k,
+												 min_df=min_df,
+												 tag_type=tag_type,
+												 vectorizer_type=vectorizer_type)
+		keyword_4 = self.model4.extract_keywords(docs=docs,
+												 titles=titles,
+												 keyphrase_ngram_range=keyphrase_ngram_range,
+												 diversity=diversity,
+												 candidate_frac=candidate_frac,
+												 stop_words=stop_words,
+												 top_k=top_k,
+												 min_df=min_df,
+												 tag_type=tag_type,
+												 vectorizer_type=vectorizer_type)
+		keywords = []
+		for a, b, c, d in zip(keyword_1, keyword_2, keyword_3, keyword_4):
+			mean_score = defaultdict(float)
+			for key, score in a:
+				mean_score[key] += round(score / 4, 4)
+			for key, score in b:
+				mean_score[key] += round(score / 4, 4)
+			for key, score in c:
+				mean_score[key] += round(score / 4, 4)
+			for key, score in d:
+				mean_score[key] += round(score / 4, 4)
+			keywords.append(sorted(mean_score.items(), key=lambda x: x[1], reverse=True))
+		return keywords
