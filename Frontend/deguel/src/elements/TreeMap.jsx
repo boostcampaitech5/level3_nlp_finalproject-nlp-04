@@ -4,8 +4,11 @@ import {
 	Divider,
 	Grid,
 	Col,
+	DateRangePicker,
 } from "@tremor/react";
 import { ArrowLeftIcon } from "@heroicons/react/outline";
+
+import { ko } from "date-fns/locale";
 
 import { PropTypes } from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
@@ -56,6 +59,10 @@ export default function TreeMap(props) {
 	]);
 	const [neg_cntsum, setNeg_cntsum] = useState(0);
 	const [pos_cntsum, setPos_cntsum] = useState(0);
+	// const [dateRange, setDateRange] = useState({
+	// 	from: new Date(),
+	// 	to: new Date(),
+	// });
 
 	// useEffect로 함수 call. 
     useEffect(() => {
@@ -76,7 +83,8 @@ export default function TreeMap(props) {
 		// let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
         // data = await supabase.from("keywords").select("*").eq("create_time", data[0].create_time).order('create_time', { ascending: false });
 		// data = data.data
-		const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
+		
+		// const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
 		let neg = 0, pos = 0
 
 		for(let i = 0;i < data.length;i++) {
@@ -108,6 +116,28 @@ export default function TreeMap(props) {
 						time_formated.split("-")[2].split(" ")[0] + "일 " + 
 						time_formated.split("-")[2].split(" ")[1] + "시"
 		setUpdatedTime(time_formated);
+
+		// dateRange.to.setDate(dateRange.to.getDate() + 1);
+		// const range = {
+		// 	date_start: dateRange.from.toISOString().slice(0, 19).replace('T', ' '),
+		// 	date_end: dateRange.to.toISOString().slice(0, 19).replace('T', ' '),
+		// };
+		// const url = "http://118.67.133.198:30008/";
+		// console.log(url);
+
+		// // fetch를 사용하여 POST 요청 보내기
+		// await fetch(url, {
+		// 	method: "get",
+		// 	// mode: "no-cors",
+		// })
+		// // .then(response => response.json()) // JSON 형태의 응답을 파싱
+		// .then(result => {
+		// 	// 요청에 대한 처리
+		// 	console.log("결과:", result);
+		// })
+		// .catch(error => {
+		// 	console.error("오류 발생:", error);
+		// });
     }
 
 	// TreeMap의 prop 설정. 
@@ -223,6 +253,15 @@ export default function TreeMap(props) {
 		<div>
 			{!isClicked && <div>
 				<Subtitle>{updatedTime}에 분석된 {props.title} 예요. </Subtitle>
+				<DateRangePicker
+					className="max-w-md mx-auto"
+					value={dateRange}
+					onValueChange={setDateRange}
+					locale={ko}
+					selectPlaceholder="날짜 선택"
+					color="rose"
+					>
+				</DateRangePicker>
 				<Chart height={getTreeMapWidth(windowSize[0])} ref={chartRef} 
 						type="treemap" data={config.data} options={options} 
 						onClick={onDataClick}/>
