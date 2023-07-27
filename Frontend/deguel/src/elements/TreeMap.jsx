@@ -80,11 +80,11 @@ export default function TreeMap(props) {
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-		let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
-        data = await supabase.from("keywords").select("*").eq("create_time", data[0].create_time).order('create_time', { ascending: false });
-		data = data.data
+		// let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
+        // data = await supabase.from("keywords").select("*").eq("create_time", data[0].create_time).order('create_time', { ascending: false });
+		// data = data.data
 		
-		// const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
+		const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
 		let neg = 0, pos = 0
 
 		for(let i = 0;i < data.length;i++) {
@@ -253,15 +253,6 @@ export default function TreeMap(props) {
 		<div>
 			{!isClicked && <div>
 				<Subtitle>{updatedTime}에 분석된 {props.title} 예요. </Subtitle>
-				<DateRangePicker
-					className="max-w-md mx-auto"
-					value={dateRange}
-					onValueChange={setDateRange}
-					locale={ko}
-					selectPlaceholder="날짜 선택"
-					color="rose"
-					>
-				</DateRangePicker>
 				<Chart height={getTreeMapWidth(windowSize[0])} ref={chartRef} 
 						type="treemap" data={config.data} options={options} 
 						onClick={onDataClick}/>
