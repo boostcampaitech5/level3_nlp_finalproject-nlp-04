@@ -44,7 +44,6 @@ export default function LineChartTab(props) {
 
 		for(let i = 0;i < data.length;i++) {
 			data[i].date = data[i].date.split("T")[0].slice();
-			console.log(data[i].date.split("T")[0]);
 		}
 
 		setStockPrice(data);

@@ -70,7 +70,6 @@ export default function TreeMap(props) {
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
         const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
-		console.log(data);
         setKeywords(data);
     }
 
@@ -144,8 +143,6 @@ export default function TreeMap(props) {
 	// Click event for TreeMap. 
 	const onDataClick = async (event) => {
 		if(chartRef.current) {
-			console.log(event);
-			console.log(chartRef);
 			const clicked_text = getElementAtEvent(chartRef.current, event)[0].element.options.labels.formatter;
 
 			for(let keyword of kewords) {
@@ -170,7 +167,6 @@ export default function TreeMap(props) {
 	const onCloseClick = (event) => {
 		setIsClicked(false);
 	}
-
 
 	const getTreeMapWidth = (width) => {
 		if(width > 1024) {
