@@ -76,10 +76,16 @@ export default function SummaryCard(props) {
     async function getInformations() {
         console.log("keyword :" + props.keyword);
         let { data } = await supabase.from("keywords").select("summary_id").eq("keyword", props.keyword);
-        const id = props.color === "green" ? data[0].summary_id.pos_news[0] : data[0].summary_id.neg_news[0];
 
-        data = await supabase.from("news_summary").select("summarization").eq("origin_id", id);
-        setNewsSummarized(data.data[0].summarization);
+        for(let d of data) {
+            const id = props.color === "green" ? d.summary_id.pos_news[0] : d.summary_id.neg_news[0];
+
+            data = await supabase.from("news_summary").select("summarization").eq("origin_id", id);
+            if(data.data[0].summarization !== ""){
+                setNewsSummarized(data.data[0].summarization);
+                break;
+            }
+        }
 
         data = await supabase.from("keywords").select("create_time").eq("keyword", props.keyword);
         

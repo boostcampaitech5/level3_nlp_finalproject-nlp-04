@@ -80,8 +80,8 @@ export default function TreeMap(props) {
 
     // Supabase에서 데이터 가져오기. 
     async function getInformations() {
-		var midnight = new Date();
-		midnight.setHours(0,0,0,0);
+		const midnight = new Date();
+		midnight.setDate(midnight.getDate() - 1);
 		let { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false }).limit(1);
         // data = await supabase.from("keywords").select("*").eq("create_time", data[0].create_time).order('create_time', { ascending: false });
 		data = await supabase.from("keywords").select("*")
@@ -89,6 +89,30 @@ export default function TreeMap(props) {
 					.lte("create_time", new Date().toISOString())
 					.order('create_time', { ascending: false });
 		data = data.data
+
+		// Create an object to store the combined data
+		const combinedData = data.reduce((result, current) => {
+		// Check if the keyword already exists in the result object
+		if (result[current.keyword]) {
+			// If yes, add the count to the existing keyword
+			result[current.keyword].count += current.count;
+			result[current.keyword].pos_cnt += current.pos_cnt;
+			result[current.keyword].neg_cnt += current.neg_cnt;
+			result[current.keyword].ratio_pos += current.ratio_pos;
+			result[current.keyword].ratio_neg += current.ratio_neg;
+
+			result[current.keyword].ratio_neg += current.ratio_neg;
+		} else {
+			// If not, create a new entry for the keyword
+			result[current.keyword] = { ...current };
+		}
+		return result;
+		}, {});
+		
+		// Convert the combinedData object back to an array of values
+		data = Object.values(combinedData);
+		
+		console.log(data);
 		
 		// const { data } = await supabase.from("keywords").select("*").order('create_time', { ascending: false });
 		let neg = 0, pos = 0
