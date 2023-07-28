@@ -11,7 +11,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 app = FastAPI()
 
-MODEL_PATH = "/opt/ml/input/model-roberta_large-sota_trainer"
+MODEL_PATH = "/opt/ml/outputs/klue/roberta-large_merged-4_100-26_100"
 
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
 tokenizer = AutoTokenizer.from_pretrained("klue/roberta-large")
