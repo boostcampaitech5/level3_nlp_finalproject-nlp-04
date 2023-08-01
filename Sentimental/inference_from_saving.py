@@ -2,19 +2,17 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from utils.utils import extract_sentences_token
 
-if __name__== "__main__" :
+
+def inference() :
     MODEL_PATH = "" #TODO: write_your_model_path
     tokenizer = AutoTokenizer.from_pretrained("klue/roberta-large")
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
 
-    arr = ["news corpus1",
-        "news corpus2"]*128
+    arr = ["이 기사는[COMPANY] 예시 기업 1 [/COMPANY]에 대한 기사야. [SEP] news corpus 1",
+        "이 기사는[COMPANY] 예시 기업 2 [/COMPANY]에 대한 기사야. [SEP] news corpus 2"]
     answer = []
-
-    # TODO
-    # 기업의 이름을 news corpus 앞에 넣는 작업이 필요합니다.
 
     model.eval()
     with torch.no_grad() :
@@ -40,3 +38,6 @@ if __name__== "__main__" :
                 else :
                     answer.append("긍정")
     print(answer)
+    
+if __name__== "__main__" :
+    inference()

@@ -1,4 +1,6 @@
 from train import sweep_train
+from inference_from_saving import inference
+
 import wandb
 import argparse
 
@@ -23,5 +25,4 @@ if __name__== "__main__" :
         wandb.agent(sweep_id, function=sweep_train)
         
     elif args.inference :
-        # TODO: inference 코드 구현
-        pass
+        inference()
