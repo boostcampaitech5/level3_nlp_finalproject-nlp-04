@@ -14,8 +14,11 @@ import {
 
 import { PropTypes } from 'prop-types';
 import { useEffect, useState } from "react";
-import { startOfYear, subDays } from "date-fns";
+
 import { supabase } from "../supabaseClient";
+
+import { startOfYear, subDays } from "date-fns";
+
 
 // 원화 표기를 위한 함수. 
 const dataFormatter = (number) => `${Intl.NumberFormat("ko-KR", {
@@ -23,8 +26,9 @@ const dataFormatter = (number) => `${Intl.NumberFormat("ko-KR", {
 	currency: 'KRW',
 }).format(number).toString()}`;
 
+
 export default function LineChartTab(props) {
-	const [selectedIndex, setSelectedIndex] = useState("Max");
+	const [selectedIndex, setSelectedIndex] = useState("4");
 	const [stockPrice, setStockPrice] = useState([{"id": 0, "ticker": "005930", "price": 0, "date": "2021-04-05"}, {"id": 0, "ticker": "005930", "price": 0, "date": "2021-04-05"}]);
 	const [ticker_name, setTickerName] = useState("a");
 
@@ -33,6 +37,7 @@ export default function LineChartTab(props) {
 		getInformations();
 	}, []);
 
+	// LineChartTab의 prop 값 설정. 
 	LineChartTab.propTypes = {
 		ticker: PropTypes.string.isRequired,
 	}
@@ -41,6 +46,11 @@ export default function LineChartTab(props) {
 	async function getInformations() {
 		// DB에서 ticker에 맞는 가격 데이터 가져오기. 
 		var { data } = await supabase.from("price").select("*").eq("ticker", props.ticker).order('date', { ascending: true });
+
+		for(let i = 0;i < data.length;i++) {
+			data[i].date = data[i].date.split("T")[0].slice();
+		}
+
 		setStockPrice(data);
 
 		// ticker에 맞는 주가 명 가져오기. 
@@ -101,7 +111,7 @@ export default function LineChartTab(props) {
 				</BadgeDelta>
 			</Flex>
 			<Metric>{dataFormatter(stockPrice[stockPrice.length - 1].price)}</Metric>
-			<Text>최근 1주일간의 주식 차트에요!</Text>
+			<Text>선택하신 기간 동안의 주식 차트에요!</Text>
 			<TabGroup index={selectedIndex} onIndexChange={setSelectedIndex} className="mt-10">
 				<TabList variant="line">
 					<Tab>1M</Tab>
@@ -121,6 +131,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -133,6 +144,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -145,6 +157,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -157,6 +170,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 					<TabPanel>
@@ -169,6 +183,7 @@ export default function LineChartTab(props) {
 							valueFormatter={dataFormatter}
 							showLegend={false}
 							yAxisWidth={48}
+							autoMinValue={true}
 						/>
 					</TabPanel>
 				</TabPanels>
