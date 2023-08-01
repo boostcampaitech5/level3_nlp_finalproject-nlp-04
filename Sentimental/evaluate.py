@@ -44,33 +44,16 @@ model.resize_token_embeddings(len(tokenizer))
 data = pd.read_csv("/opt/ml/finance_sentiment_corpus/merged/merged_all.csv")
 data = gpt_preprocessing_labels_token(data) # gpt에서 출력한 오류들을 json 형식으로 맞춰주고 labels를 수정하는 것    
 
-# # "labels" 값을 추출하여 새로운 Series 생성
 dataset = train_test_split(data['content_corpus_company'], data['labels'],
-                        test_size=0.2, shuffle=True, stratify=data['labels'], # label에 비율을 맞춰서 분리
-                            random_state=SEED)
-# dataset = (data[data['company']=='삼성전자']['content_corpus_company'],
-#            data[data['company']!='삼성전자']['content_corpus_company'],
-#            data[data['company']=='삼성전자']['labels'],
-#            data[data['company']!='삼성전자']['labels']
-# )
+                           test_size=0.2, shuffle=True, stratify=data['labels'],
+                           random_state=SEED)
+
 
 sentence_train, sentence_val, label_train, label_val = dataset
 
 
-max_length=3000 # wandb.config.max_length #원본:500
+max_length=3000
 stride=0
-
-# TODO 임의의 값으로 차후 수정
-# train_encoding = tokenizer(sentence_train.tolist(), # pandas.Series -> list
-#                             return_tensors='pt',
-#                             padding=True,
-#                             truncation=True,
-#                             ##
-#                             max_length=max_length,
-#                             # stride=stride,
-#                             # return_overflowing_tokens=True,
-#                             # return_offsets_mapping=False
-#                             )
 
 val_encoding = tokenizer(sentence_val.tolist(),
                         return_tensors='pt',
@@ -82,15 +65,14 @@ val_encoding = tokenizer(sentence_val.tolist(),
                         # return_overflowing_tokens=True,
                         # return_offsets_mapping=False
                         )
-# train_encoding = extract_sentences_token(train_encoding, tokenizer.pad_token_id)
-val_encoding = extract_sentences_token(val_encoding, tokenizer.pad_token_id)
-#앞 128, 뒷 384 토큰으로 센텐스를 추출합니다.
 
-# train_set = SentimentalDataset(train_encoding, label_train.reset_index(drop=True))
+val_encoding = extract_sentences_token(val_encoding, tokenizer.pad_token_id)
+# 앞 128, 뒷 384 토큰으로 센텐스를 추출합니다.
+
 val_set = SentimentalDataset(val_encoding, label_val.reset_index(drop=True))
 
 
-# 학습
+# evaluate
 logging_steps = 200
 num_train_epochs = 1
 per_device_train_batch_size = 8
